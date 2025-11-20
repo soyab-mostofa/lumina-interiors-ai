@@ -52,18 +52,16 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   return (
     <div className="w-full space-y-2">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-medium text-slate-700">{label}</span>
-        <span className="text-sm font-bold text-indigo-600">
+        <span className="text-sm text-slate-600">{label}</span>
+        <span className="text-sm text-slate-500">
           {Math.round(progress)}%
         </span>
       </div>
-      <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+      <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300 ease-out"
+          className="h-full bg-slate-400 rounded-full transition-all duration-300 ease-out"
           style={{ width: `${progress}%` }}
-        >
-          <div className="w-full h-full bg-white/30 animate-pulse"></div>
-        </div>
+        />
       </div>
     </div>
   );

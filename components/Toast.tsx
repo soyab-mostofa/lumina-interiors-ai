@@ -27,83 +27,37 @@ const ToastItem: React.FC<ToastProps> = ({ toast, onClose }) => {
   }, [toast.id, toast.duration, onClose]);
 
   const icons = {
-    success: <CheckCircle size={22} className="text-emerald-500 animate-scale-in" />,
-    error: <XCircle size={22} className="text-red-500 animate-scale-in" />,
-    warning: <AlertCircle size={22} className="text-amber-500 animate-scale-in" />,
-    info: <Info size={22} className="text-blue-500 animate-scale-in" />,
+    success: <CheckCircle size={18} className="text-slate-600" />,
+    error: <XCircle size={18} className="text-slate-600" />,
+    warning: <AlertCircle size={18} className="text-slate-600" />,
+    info: <Info size={18} className="text-slate-600" />,
   };
-
-  const styles = {
-    success: {
-      bg: 'bg-gradient-to-br from-emerald-50/95 to-teal-50/95',
-      border: 'border-emerald-300/50',
-      iconBg: 'bg-emerald-100/80',
-      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.2)]',
-    },
-    error: {
-      bg: 'bg-gradient-to-br from-red-50/95 to-rose-50/95',
-      border: 'border-red-300/50',
-      iconBg: 'bg-red-100/80',
-      glow: 'shadow-[0_0_20px_rgba(239,68,68,0.2)]',
-    },
-    warning: {
-      bg: 'bg-gradient-to-br from-amber-50/95 to-orange-50/95',
-      border: 'border-amber-300/50',
-      iconBg: 'bg-amber-100/80',
-      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.2)]',
-    },
-    info: {
-      bg: 'bg-gradient-to-br from-blue-50/95 to-indigo-50/95',
-      border: 'border-blue-300/50',
-      iconBg: 'bg-blue-100/80',
-      glow: 'shadow-[0_0_20px_rgba(59,130,246,0.2)]',
-    },
-  };
-
-  const style = styles[toast.type];
 
   return (
     <div
-      className={`${style.bg} ${style.border} ${style.glow} border-2 rounded-2xl shadow-strong p-4 min-w-[320px] max-w-md animate-slide-in-right backdrop-blur-xl hover:shadow-medium transition-all duration-300 group`}
+      className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 min-w-[320px] max-w-md"
       role="alert"
     >
-      <div className="flex items-start gap-3.5">
-        <div className={`flex-shrink-0 mt-0.5 p-2 rounded-xl ${style.iconBg} shadow-soft group-hover:scale-110 transition-transform`}>
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 bg-slate-100 p-1.5 rounded-md">
           {icons[toast.type]}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-extrabold text-slate-900 text-sm tracking-tight">{toast.title}</p>
+          <p className="font-semibold text-slate-900 text-sm">{toast.title}</p>
           {toast.message && (
-            <p className="text-slate-600 text-xs mt-1.5 leading-relaxed">
+            <p className="text-slate-600 text-xs mt-1 leading-relaxed">
               {toast.message}
             </p>
           )}
         </div>
         <button
           onClick={() => onClose(toast.id)}
-          className="flex-shrink-0 text-slate-400 hover:text-slate-700 transition-all hover:scale-110 hover:rotate-90 p-1 rounded-lg hover:bg-slate-200/50"
+          className="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors p-1"
           aria-label="Close notification"
         >
-          <X size={16} />
+          <X size={14} />
         </button>
       </div>
-
-      {/* Progress bar */}
-      <div className="mt-3 h-1 bg-slate-200/50 rounded-full overflow-hidden">
-        <div
-          className={`h-full ${style.iconBg} rounded-full transition-all`}
-          style={{
-            animation: `shrink ${toast.duration || 5000}ms linear forwards`,
-          }}
-        ></div>
-      </div>
-
-      <style>{`
-        @keyframes shrink {
-          from { width: 100%; }
-          to { width: 0%; }
-        }
-      `}</style>
     </div>
   );
 };
