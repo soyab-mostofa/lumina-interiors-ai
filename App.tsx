@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { 
-  Upload, 
-  Wand2, 
-  RefreshCcw, 
-  Download, 
-  ImagePlus, 
+import {
+  Upload,
+  Wand2,
+  RefreshCcw,
+  Download,
+  ImagePlus,
   Palette,
   Loader2,
   ArrowRight,
@@ -15,7 +15,6 @@ import {
   ChevronRight,
   Lightbulb,
   MessageCircle,
-  CheckCircle,
   Home,
   Building2
 } from 'lucide-react';
@@ -24,6 +23,8 @@ import { analyzeRoomImage, redesignRoomImage, generateNewImage, fileToBase64 } f
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { AnalysisPanel } from './components/AnalysisPanel';
 import { DesignerChat } from './components/DesignerChat';
+import { IMAGE_CONSTRAINTS } from './services/constants';
+import { logger } from './services/logger';
 
 enum Tab {
   REDESIGN = 'redesign',
@@ -38,6 +39,46 @@ const STEPS = [
 ];
 
 type RoomContextType = 'Residential' | 'Commercial';
+
+/**
+ * Safely extracts base64 data from a data URL
+ */
+const extractBase64FromDataUrl = (dataUrl: string): string => {
+  if (!dataUrl) return '';
+  if (!dataUrl.includes(',')) return dataUrl;
+  const parts = dataUrl.split(',');
+  return parts.length > 1 ? parts[1] : dataUrl;
+};
+
+/**
+ * Safely gets the style title with bounds checking
+ */
+const getStyleTitle = (
+  selectedStyleId: string | null,
+  customPrompt: string,
+  analysis: RoomAnalysis | null
+): string => {
+  if (!selectedStyleId) return "Refined Design";
+
+  if (selectedStyleId === 'custom') {
+    return `Custom: "${customPrompt}"`;
+  }
+
+  if (selectedStyleId.startsWith('suggested-')) {
+    const parts = selectedStyleId.split('-');
+    if (parts.length < 2) return "Refined Design";
+
+    const idx = parseInt(parts[1], 10);
+    if (isNaN(idx) || !analysis?.suggestedPrompts || idx >= analysis.suggestedPrompts.length) {
+      return "Refined Design";
+    }
+
+    return analysis.suggestedPrompts[idx].title;
+  }
+
+  const style = DESIGN_STYLES.find(s => s.id === selectedStyleId);
+  return style?.name || "Refined Design";
+};
 
 const App: React.FC = () => {
   // --- Global State ---
@@ -81,10 +122,24 @@ const App: React.FC = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Reset previous errors
     setError(null);
-    
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError("Please upload an image file (JPEG, PNG, etc.)");
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file size (10MB max)
+    if (file.size > IMAGE_CONSTRAINTS.MAX_FILE_SIZE_BYTES) {
+      setError(`File size must be less than ${IMAGE_CONSTRAINTS.MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB`);
+      e.target.value = '';
+      return;
+    }
+
     // Store file and show modal
     setTempUploadedFile(file);
     setShowContextModal(true);
@@ -115,9 +170,10 @@ const App: React.FC = () => {
       const result = await analyzeRoomImage(base64, context);
       setAnalysis(result);
       setRedesignState(AppState.SELECTION);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to analyze image. Please try a smaller image.");
+    } catch (error) {
+      logger.error("Analysis failed", error);
+      const message = error instanceof Error ? error.message : "Failed to analyze image. Please try a smaller image.";
+      setError(message);
       setRedesignState(AppState.IDLE);
     } finally {
       setTempUploadedFile(null);
@@ -159,9 +215,10 @@ const App: React.FC = () => {
       const resultImage = await redesignRoomImage(originalImageBase64, finalPrompt);
       setGeneratedRedesign(resultImage);
       setRedesignState(AppState.COMPLETE);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to generate redesign. Try a simpler request.");
+    } catch (error) {
+      logger.error("Redesign generation failed", error);
+      const message = error instanceof Error ? error.message : "Failed to generate redesign. Try a simpler request.";
+      setError(message);
       setRedesignState(AppState.SELECTION);
     }
   };
@@ -174,15 +231,17 @@ const App: React.FC = () => {
       try {
         // We use the ORIGINAL image as base for better quality, but the prompt
         // from the Chat AI is smart enough to include "Keep current changes" logic if needed.
-        // For a truly iterative flow, we might want to use generatedRedesign, 
+        // For a truly iterative flow, we might want to use generatedRedesign,
         // but re-generating from original is often cleaner to avoid artifact compounding.
         // The Chat prompt logic (State Manager) handles the cumulative state.
         const resultImage = await redesignRoomImage(originalImageBase64, prompt);
         setGeneratedRedesign(resultImage);
         setRedesignState(AppState.COMPLETE);
-      } catch (err) {
-        setError("Failed to update design from chat.");
-        setRedesignState(AppState.COMPLETE); 
+      } catch (error) {
+        logger.error("Chat-triggered redesign failed", error);
+        const message = error instanceof Error ? error.message : "Failed to update design from chat.";
+        setError(message);
+        setRedesignState(AppState.COMPLETE);
       }
   };
 
@@ -199,8 +258,10 @@ const App: React.FC = () => {
       const resultImage = await generateNewImage(generatePrompt);
       setGeneratedNewImage(resultImage);
       setGenerateState(AppState.COMPLETE);
-    } catch (err) {
-      setError("Failed to generate image. Please try again.");
+    } catch (error) {
+      logger.error("Image generation failed", error);
+      const message = error instanceof Error ? error.message : "Failed to generate image. Please try again.";
+      setError(message);
       setGenerateState(AppState.IDLE);
     }
   };
@@ -244,7 +305,7 @@ const App: React.FC = () => {
                 <h3 className="text-xl font-bold text-slate-900 mb-2">Residential</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">Living rooms, bedrooms, kitchens, apartments, and personal spaces.</p>
                 <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity text-indigo-600">
-                   <CheckCircle size={24} />
+                   <CheckCircleIcon size={24} />
                 </div>
              </button>
 
@@ -258,7 +319,7 @@ const App: React.FC = () => {
                 <h3 className="text-xl font-bold text-slate-900 mb-2">Commercial</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">Offices, retail stores, lobbies, co-working spaces, and business environments.</p>
                 <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity text-purple-600">
-                   <CheckCircle size={24} />
+                   <CheckCircleIcon size={24} />
                 </div>
              </button>
           </div>
@@ -404,7 +465,7 @@ const App: React.FC = () => {
                               <h3 className="font-bold text-slate-900 mb-2">{prompt.title}</h3>
                               <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">{prompt.description}</p>
                               {selectedStyleId === `suggested-${idx}` && (
-                                <div className="absolute top-4 right-4 text-indigo-600"><CheckCircle size={20} /></div>
+                                <div className="absolute top-4 right-4 text-indigo-600"><CheckCircleIcon size={20} /></div>
                               )}
                             </button>
                           ))}
@@ -504,17 +565,19 @@ const App: React.FC = () => {
             <div className="animate-fade-in max-w-7xl mx-auto px-6 space-y-8 py-4 relative">
                 
                 {/* Chat Overlay */}
-                <DesignerChat 
-                   isOpen={isChatOpen}
-                   onClose={() => setIsChatOpen(false)}
-                   currentImageBase64={generatedRedesign ? generatedRedesign.split(',')[1] : originalImageBase64!}
-                   originalImageBase64={originalImageBase64!}
-                   analysis={analysis}
-                   roomContext={roomContext}
-                   onTriggerRedesign={handleChatTriggeredRedesign}
-                   messages={chatMessages}
-                   setMessages={setChatMessages}
-                />
+                {originalImageBase64 && (
+                  <DesignerChat
+                    isOpen={isChatOpen}
+                    onClose={() => setIsChatOpen(false)}
+                    currentImageBase64={generatedRedesign ? extractBase64FromDataUrl(generatedRedesign) : originalImageBase64}
+                    originalImageBase64={originalImageBase64}
+                    analysis={analysis}
+                    roomContext={roomContext}
+                    onTriggerRedesign={handleChatTriggeredRedesign}
+                    messages={chatMessages}
+                    setMessages={setChatMessages}
+                  />
+                )}
 
                 {/* Floating Chat Button (Bottom Left) */}
                 {!isChatOpen && (
@@ -545,13 +608,15 @@ const App: React.FC = () => {
                         >
                             <RefreshCcw size={18} /> Try Another Style
                         </button>
-                        <a 
-                            href={generatedRedesign!} 
+                        {generatedRedesign && (
+                          <a
+                            href={generatedRedesign}
                             download="lumina-redesign.png"
                             className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 shadow-lg hover:shadow-xl transition-all font-bold"
-                        >
+                          >
                             <Download size={18} /> Download HD
-                        </a>
+                          </a>
+                        )}
                     </div>
                 </div>
 
@@ -568,18 +633,16 @@ const App: React.FC = () => {
                           </div>
                       </div>
                    )}
-                   <BeforeAfterSlider beforeImage={originalImage} afterImage={generatedRedesign!} />
+                   {generatedRedesign && (
+                     <BeforeAfterSlider beforeImage={originalImage} afterImage={generatedRedesign} />
+                   )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                    <div className="bg-white/80 backdrop-blur p-8 rounded-3xl border border-slate-200 shadow-sm">
                        <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Sparkles size={18} className="text-indigo-500"/> Style Applied</h3>
                        <p className="text-slate-600 leading-relaxed">
-                          {selectedStyleId === 'custom' 
-                             ? `Custom: "${customPrompt}"` 
-                             : selectedStyleId?.startsWith('suggested-') 
-                                ? analysis?.suggestedPrompts[parseInt(selectedStyleId.split('-')[1])].title 
-                                : DESIGN_STYLES.find(s => s.id === selectedStyleId)?.name || "Refined Design"}
+                          {getStyleTitle(selectedStyleId, customPrompt, analysis)}
                        </p>
                    </div>
                    <div className="bg-gradient-to-br from-indigo-50 to-white p-8 rounded-3xl border border-indigo-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-indigo-200 transition-colors"
@@ -601,8 +664,8 @@ const App: React.FC = () => {
     return null;
   };
 
-  // CheckCircle Helper
-  const CheckCircle = ({ size }: { size: number }) => (
+  // CheckCircleIcon Helper (local custom icon component)
+  const CheckCircleIcon = ({ size }: { size: number }) => (
     <div className={`bg-indigo-600 rounded-full p-0.5 text-white flex items-center justify-center`} style={{ width: size, height: size }}>
         <Check size={size - 4} strokeWidth={4} />
     </div>

@@ -7,11 +7,13 @@ export default defineConfig(({ mode }) => {
     return {
       server: {
         port: 3000,
-        host: '0.0.0.0',
+        host: process.env.HOST || 'localhost',
       },
       plugins: [react()],
+      // SECURITY WARNING: API keys should NEVER be exposed in client-side code
+      // TODO: Move all Gemini API calls to a backend server to properly secure the API key
+      // For now, the API key is still used client-side but should be migrated to a backend service
       define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
       },
       resolve: {

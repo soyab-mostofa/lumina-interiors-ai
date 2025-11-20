@@ -3,6 +3,13 @@ import { Send, X, MessageCircle, Sparkles, Loader2, User } from 'lucide-react';
 import { ChatMessage, RoomAnalysis } from '../types';
 import { getDesignerChatResponse } from '../services/geminiService';
 
+/**
+ * Generates a unique ID for chat messages
+ */
+const generateUniqueId = (): string => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
 interface DesignerChatProps {
   isOpen: boolean;
   onClose: () => void;
@@ -45,7 +52,7 @@ export const DesignerChat: React.FC<DesignerChatProps> = ({
     
     // Add User Message
     const newUserMsg: ChatMessage = {
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       role: 'user',
       text: userText
     };
@@ -55,8 +62,8 @@ export const DesignerChat: React.FC<DesignerChatProps> = ({
     try {
       // Call Gemini with full context including roomContext
       const response = await getDesignerChatResponse(
-        [...messages, newUserMsg], 
-        currentImageBase64, 
+        [...messages, newUserMsg],
+        currentImageBase64,
         originalImageBase64,
         analysis,
         userText,
@@ -64,7 +71,7 @@ export const DesignerChat: React.FC<DesignerChatProps> = ({
       );
 
       const aiMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: generateUniqueId(),
         role: 'ai',
         text: response.text
       };
@@ -73,7 +80,7 @@ export const DesignerChat: React.FC<DesignerChatProps> = ({
       // If AI suggests a visual change
       if (response.newGenerationPrompt) {
          const sysMsg: ChatMessage = {
-            id: (Date.now() + 2).toString(),
+            id: generateUniqueId(),
             role: 'ai',
             text: "I'm applying those specific adjustments now...",
             isSystemMessage: true

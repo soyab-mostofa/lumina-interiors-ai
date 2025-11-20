@@ -9,6 +9,7 @@ interface BeforeAfterSliderProps {
 export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImage, afterImage }) => {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMove = useCallback((clientX: number) => {
@@ -29,6 +30,23 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImag
 
   const onMouseUp = useCallback(() => setIsDragging(false), []);
 
+  // Measure container width and update on resize to prevent memory leaks
+  useEffect(() => {
+    const updateContainerWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+
+    updateContainerWidth();
+    window.addEventListener('resize', updateContainerWidth);
+
+    return () => {
+      window.removeEventListener('resize', updateContainerWidth);
+    };
+  }, []);
+
+  // Handle dragging events
   useEffect(() => {
     if (isDragging) {
       window.addEventListener('mousemove', onMouseMove);
@@ -77,7 +95,7 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImag
             src={beforeImage}
             alt="Original Room"
             className="absolute top-0 left-0 w-full max-w-none h-full object-cover"
-            style={{ width: containerRef.current ? containerRef.current.offsetWidth : '100%' }}
+            style={{ width: containerWidth ? `${containerWidth}px` : '100%' }}
           />
           <div className="absolute top-6 left-6 bg-white/80 backdrop-blur-md text-slate-900 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase z-10 border border-white/50 shadow-sm">
             Before

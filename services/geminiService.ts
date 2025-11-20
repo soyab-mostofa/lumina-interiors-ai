@@ -1,8 +1,13 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { RoomAnalysis, ChatMessage } from "../types";
+import { IMAGE_CONSTRAINTS, GENERATION_CONFIG } from "./constants";
+import { logger } from "./logger";
 
 // Initialize API Client
-// NOTE: In a real production app, requests should be proxied through a backend to keep the key secure.
+// SECURITY WARNING: This API key is exposed in the client-side bundle!
+// TODO: CRITICAL - Move all Gemini API calls to a secure backend server.
+// Current implementation exposes your API key to anyone who inspects the network traffic or source code.
+// For production, create a backend API that proxies requests to Gemini with server-side authentication.
 const getAiClient = () => new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 /**
@@ -18,20 +23,18 @@ export const fileToBase64 = (file: File): Promise<string> => {
       const img = new Image();
       img.src = event.target?.result as string;
       img.onload = () => {
-        const MAX_WIDTH = 768;
-        const MAX_HEIGHT = 768;
         let width = img.width;
         let height = img.height;
 
         if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
+          if (width > IMAGE_CONSTRAINTS.UPLOAD_MAX_WIDTH) {
+            height *= IMAGE_CONSTRAINTS.UPLOAD_MAX_WIDTH / width;
+            width = IMAGE_CONSTRAINTS.UPLOAD_MAX_WIDTH;
           }
         } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
+          if (height > IMAGE_CONSTRAINTS.UPLOAD_MAX_HEIGHT) {
+            width *= IMAGE_CONSTRAINTS.UPLOAD_MAX_HEIGHT / height;
+            height = IMAGE_CONSTRAINTS.UPLOAD_MAX_HEIGHT;
           }
         }
 
@@ -39,14 +42,14 @@ export const fileToBase64 = (file: File): Promise<string> => {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-        
+
         if (!ctx) {
           reject(new Error("Failed to get canvas context"));
           return;
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.6); 
+        const dataUrl = canvas.toDataURL(IMAGE_CONSTRAINTS.COMPRESSION_FORMAT, 0.6);
         resolve(dataUrl.split(',')[1]);
       };
       img.onerror = (error) => reject(error);
@@ -67,20 +70,19 @@ const compressBase64 = async (base64Data: string): Promise<string> => {
       // Handle potential missing prefix
       const src = base64Data.startsWith('data:') ? base64Data : `data:image/jpeg;base64,${base64Data}`;
       img.src = src;
-      
+
       img.onload = () => {
-        const MAX_DIM = 512;
         let w = img.width;
         let h = img.height;
-        
+
         // Scale down if needed
-        if (w > MAX_DIM || h > MAX_DIM) {
+        if (w > IMAGE_CONSTRAINTS.CHAT_COMPRESS_MAX_DIM || h > IMAGE_CONSTRAINTS.CHAT_COMPRESS_MAX_DIM) {
           if (w > h) {
-            h *= MAX_DIM / w;
-            w = MAX_DIM;
+            h *= IMAGE_CONSTRAINTS.CHAT_COMPRESS_MAX_DIM / w;
+            w = IMAGE_CONSTRAINTS.CHAT_COMPRESS_MAX_DIM;
           } else {
-            w *= MAX_DIM / h;
-            h = MAX_DIM;
+            w *= IMAGE_CONSTRAINTS.CHAT_COMPRESS_MAX_DIM / h;
+            h = IMAGE_CONSTRAINTS.CHAT_COMPRESS_MAX_DIM;
           }
         } else {
           // If already small, just return original to save processing
@@ -93,23 +95,24 @@ const compressBase64 = async (base64Data: string): Promise<string> => {
         canvas.width = w;
         canvas.height = h;
         const ctx = canvas.getContext('2d');
-        
+
         if (ctx) {
-            ctx.drawImage(img, 0, 0, w, h);
-            // Aggressive compression for chat context (it only needs to see general layout/colors)
-            const data = canvas.toDataURL('image/jpeg', 0.5);
-            resolve(data.split(',')[1]);
+          ctx.drawImage(img, 0, 0, w, h);
+          // Aggressive compression for chat context (it only needs to see general layout/colors)
+          const data = canvas.toDataURL(IMAGE_CONSTRAINTS.COMPRESSION_FORMAT, 0.5);
+          resolve(data.split(',')[1]);
         } else {
-            resolve(base64Data.replace(/^data:image\/\w+;base64,/, ""));
+          logger.warn("Failed to get canvas context during compression");
+          resolve(base64Data.replace(/^data:image\/\w+;base64,/, ""));
         }
       };
-      
-      img.onerror = () => {
-        console.warn("Image compression failed to load image, using original.");
+
+      img.onerror = (error) => {
+        logger.warn("Image compression failed to load image, using original", error);
         resolve(base64Data.replace(/^data:image\/\w+;base64,/, ""));
       };
-    } catch (e) {
-      console.warn("Image compression error:", e);
+    } catch (error) {
+      logger.warn("Image compression error", error);
       resolve(base64Data.replace(/^data:image\/\w+;base64,/, ""));
     }
   });
@@ -184,32 +187,47 @@ export const analyzeRoomImage = async (base64Image: string, contextHint?: 'Resid
     });
 
     if (!response.text) throw new Error("No analysis returned");
-    
-    let parsed: any = {};
-    try {
-      parsed = JSON.parse(response.text);
-    } catch (e) {
-      console.error("Failed to parse analysis JSON", e);
-      return {
-        roomType: "Room",
-        architecturalFeatures: [],
-        designIssues: [],
-        decorSuggestions: [],
-        suggestedPrompts: []
-      };
+
+    // Validate and parse response with proper error handling
+    const parsed = validateRoomAnalysis(response.text);
+    return parsed;
+
+  } catch (error) {
+    logger.error("Analysis failed", error);
+    throw error;
+  }
+};
+
+/**
+ * Validates and safely parses room analysis JSON response
+ */
+const validateRoomAnalysis = (jsonText: string): RoomAnalysis => {
+  const fallback: RoomAnalysis = {
+    roomType: "Room",
+    architecturalFeatures: [],
+    designIssues: [],
+    decorSuggestions: [],
+    suggestedPrompts: []
+  };
+
+  try {
+    const parsed = JSON.parse(jsonText);
+
+    if (!parsed || typeof parsed !== 'object') {
+      logger.warn("Analysis response is not a valid object");
+      return fallback;
     }
-    
+
     return {
-      roomType: parsed.roomType || "Unknown Room",
+      roomType: typeof parsed.roomType === 'string' ? parsed.roomType : "Unknown Room",
       architecturalFeatures: Array.isArray(parsed.architecturalFeatures) ? parsed.architecturalFeatures : [],
       designIssues: Array.isArray(parsed.designIssues) ? parsed.designIssues : [],
       decorSuggestions: Array.isArray(parsed.decorSuggestions) ? parsed.decorSuggestions : [],
       suggestedPrompts: Array.isArray(parsed.suggestedPrompts) ? parsed.suggestedPrompts : []
-    } as RoomAnalysis;
-
+    };
   } catch (error) {
-    console.error("Analysis failed:", error);
-    throw error;
+    logger.error("Failed to parse analysis JSON", error);
+    return fallback;
   }
 };
 
@@ -305,7 +323,7 @@ export const getDesignerChatResponse = async (
     };
 
   } catch (error) {
-    console.error("Chat failed:", error);
+    logger.error("Chat failed", error);
     return { text: "I'm sorry, I couldn't process that request right now." };
   }
 };
@@ -347,14 +365,14 @@ export const redesignRoomImage = async (base64Original: string, promptDescriptio
     });
 
     const part = response.candidates?.[0]?.content?.parts?.[0];
-    if (part && part.inlineData && part.inlineData.data) {
+    if (part && 'inlineData' in part && part.inlineData?.data) {
       const mimeType = part.inlineData.mimeType || 'image/png';
       return `data:${mimeType};base64,${part.inlineData.data}`;
     }
-    
-    throw new Error("No image generated");
+
+    throw new Error("No image data found in response");
   } catch (error) {
-    console.error("Redesign failed:", error);
+    logger.error("Redesign failed", error);
     throw error;
   }
 };
@@ -372,19 +390,19 @@ export const generateNewImage = async (prompt: string): Promise<string> => {
       config: {
         numberOfImages: 1,
         outputMimeType: 'image/jpeg',
-        aspectRatio: '16:9',
+        aspectRatio: IMAGE_CONSTRAINTS.GENERATE_ASPECT_RATIO,
       },
     });
 
     const imageBytes = response.generatedImages?.[0]?.image?.imageBytes;
     const mimeType = response.generatedImages?.[0]?.image?.mimeType || 'image/jpeg';
-    
+
     if (imageBytes) {
       return `data:${mimeType};base64,${imageBytes}`;
     }
     throw new Error("No image generated from Imagen");
   } catch (error) {
-    console.error("Generation failed:", error);
+    logger.error("Generation failed", error);
     throw error;
   }
 };
