@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?
+  roomContext     String        // 'Residential' | 'Commercial'
+  originalImage   String        // Base64 or URL
+  analysis        Json          // RoomAnalysis JSON
+  redesigns       Redesign[]
+  chatHistory     ChatMessage[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([createdAt])
+}
+
+model Redesign {
+  id           String   @id @default(cuid())
+  projectId    String
+  styleId      String?
+  customPrompt String?
+  resultImage  String   // Base64 or URL
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+model ChatMessage {
+  id          String   @id @default(cuid())
+  projectId   String
+  role        String   // 'user' | 'assistant'
+  content     String   @db.Text
+  imagePrompt String?  @db.Text
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+model Generation {
+  id          String   @id @default(cuid())
+  prompt      String   @db.Text
+  resultImage String   // Base64 or URL
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
