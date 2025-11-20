@@ -1,0 +1,5 @@
+{
+  "name": "Lumina Interiors AI",
+  "description": "An AI-powered interior design assistant that analyzes room photos, suggests improvements, and generates photorealistic redesigns with a before/after comparison slider.",
+  "requestFramePermissions": []
+}
