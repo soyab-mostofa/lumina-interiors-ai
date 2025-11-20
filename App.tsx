@@ -17,13 +17,18 @@ import {
   MessageCircle,
   CheckCircle,
   Home,
-  Building2
+  Building2,
+  Keyboard,
+  X
 } from 'lucide-react';
 import { AppState, DESIGN_STYLES, RoomAnalysis, ChatMessage } from './types';
 import { analyzeRoomImage, redesignRoomImage, generateNewImage, fileToBase64, extractBase64 } from './services/geminiService';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { AnalysisPanel } from './components/AnalysisPanel';
 import { DesignerChat } from './components/DesignerChat';
+import { ToastContainer, useToast } from './components/Toast';
+import { ProgressBar } from './components/ProgressBar';
+import { AnalysisSkeleton, StyleCardSkeleton } from './components/SkeletonLoader';
 
 enum Tab {
   REDESIGN = 'redesign',
@@ -39,10 +44,14 @@ const STEPS = [
 
 type RoomContextType = 'Residential' | 'Commercial';
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+
 const App: React.FC = () => {
+  // --- Toast System ---
+  const toast = useToast();
+
   // --- Global State ---
   const [activeTab, setActiveTab] = useState<Tab>(Tab.REDESIGN);
-  const [error, setError] = useState<string | null>(null);
 
   // --- Redesign Tab State (Persisted) ---
   const [redesignState, setRedesignState] = useState<AppState>(AppState.IDLE);
@@ -54,11 +63,17 @@ const App: React.FC = () => {
   const [generatedRedesign, setGeneratedRedesign] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  
+
   // --- Upload & Context Flow State ---
   const [showContextModal, setShowContextModal] = useState(false);
   const [tempUploadedFile, setTempUploadedFile] = useState<File | null>(null);
   const [roomContext, setRoomContext] = useState<RoomContextType>('Residential');
+
+  // --- Drag and Drop State ---
+  const [isDragging, setIsDragging] = useState(false);
+
+  // --- Keyboard Shortcuts State ---
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
 
   // --- Generate New Tab State (Persisted) ---
   const [generateState, setGenerateState] = useState<AppState>(AppState.IDLE);
@@ -86,6 +101,61 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // --- Keyboard Shortcuts ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + K = Show shortcuts modal
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowKeyboardShortcuts(true);
+      }
+
+      // Cmd/Ctrl + U = Upload file
+      if ((e.metaKey || e.ctrlKey) && e.key === 'u') {
+        e.preventDefault();
+        if (activeTab === Tab.REDESIGN && redesignState === AppState.IDLE) {
+          fileInputRef.current?.click();
+        }
+      }
+
+      // Cmd/Ctrl + Enter = Generate/Redesign
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (activeTab === Tab.REDESIGN && redesignState === AppState.SELECTION) {
+          handleRedesign();
+        } else if (activeTab === Tab.GENERATE && generatePrompt.trim()) {
+          handleGenerateNew();
+        }
+      }
+
+      // Cmd/Ctrl + / = Toggle chat
+      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+        e.preventDefault();
+        if (redesignState === AppState.COMPLETE) {
+          setIsChatOpen(prev => !prev);
+        }
+      }
+
+      // Cmd/Ctrl + R = Reset
+      if ((e.metaKey || e.ctrlKey) && e.key === 'r') {
+        e.preventDefault();
+        resetRedesign();
+      }
+
+      // Escape = Close modals
+      if (e.key === 'Escape') {
+        setShowKeyboardShortcuts(false);
+        setShowContextModal(false);
+        if (isChatOpen) {
+          setIsChatOpen(false);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, redesignState, generatePrompt, isChatOpen]);
+
   // --- Computed Step for Redesign ---
   const getCurrentRedesignStep = () => {
     if (redesignState === AppState.IDLE && !originalImage) return 1;
@@ -95,15 +165,70 @@ const App: React.FC = () => {
     return 1;
   };
 
+  // --- File Validation ---
+  const validateFile = (file: File): boolean => {
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Invalid file type', 'Please upload an image file (JPG, PNG, etc.)');
+      return false;
+    }
+
+    // Check file size (10MB max)
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('File too large', `Maximum file size is 10MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`);
+      return false;
+    }
+
+    return true;
+  };
+
+  // --- Drag and Drop Handlers ---
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set dragging to false if we're leaving the drop zone entirely
+    if (e.currentTarget === e.target) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (validateFile(file)) {
+        setTempUploadedFile(file);
+        setShowContextModal(true);
+      }
+    }
+  };
+
   // --- Handlers ---
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    // Reset previous errors
-    setError(null);
-    
+
+    if (!validateFile(file)) {
+      e.target.value = '';
+      return;
+    }
+
     // Store file and show modal
     setTempUploadedFile(file);
     setShowContextModal(true);
@@ -117,6 +242,8 @@ const App: React.FC = () => {
     setRoomContext(context);
     setShowContextModal(false);
 
+    toast.info('Starting analysis', `Analyzing your ${context.toLowerCase()} space...`);
+
     // Start Analysis Flow
     setRedesignState(AppState.ANALYZING);
     setOriginalImage(URL.createObjectURL(tempUploadedFile));
@@ -125,7 +252,6 @@ const App: React.FC = () => {
     setSelectedStyleId(null);
     setChatMessages([]);
     setActiveTab(Tab.REDESIGN); // Ensure we are on the right tab
-    setError(null);
 
     // Create abort controller for this request
     abortControllerRef.current = new AbortController();
@@ -138,10 +264,11 @@ const App: React.FC = () => {
       const result = await analyzeRoomImage(base64, context, abortControllerRef.current.signal);
       setAnalysis(result);
       setRedesignState(AppState.SELECTION);
+      toast.success('Analysis complete!', 'Room analyzed successfully. Choose your style below.');
     } catch (err) {
       console.error('Analysis failed:', err);
       const message = err instanceof Error ? err.message : "Failed to analyze image. Please try again.";
-      setError(message);
+      toast.error('Analysis failed', message);
       setRedesignState(AppState.IDLE);
     } finally {
       setTempUploadedFile(null);
@@ -162,7 +289,7 @@ const App: React.FC = () => {
       }
     } else if (selectedStyleId === 'custom') {
       if (!customPrompt.trim()) {
-        setError("Please enter a custom prompt.");
+        toast.error('Missing prompt', 'Please enter a custom prompt.');
         return;
       }
       finalPrompt = customPrompt;
@@ -171,12 +298,12 @@ const App: React.FC = () => {
       const style = DESIGN_STYLES.find(s => s.id === selectedStyleId);
       if (style) finalPrompt = style.promptSuffix;
     } else {
-      setError("Please select a style.");
+      toast.error('No style selected', 'Please select a style.');
       return;
     }
 
     setRedesignState(AppState.GENERATING);
-    setError(null);
+    toast.info('Generating design', 'Creating your transformation...');
 
     // Create abort controller for this request
     abortControllerRef.current = new AbortController();
@@ -185,10 +312,11 @@ const App: React.FC = () => {
       const resultImage = await redesignRoomImage(originalImageBase64, finalPrompt, abortControllerRef.current.signal);
       setGeneratedRedesign(resultImage);
       setRedesignState(AppState.COMPLETE);
+      toast.success('Design complete!', 'Your transformation is ready. Drag the slider to compare.');
     } catch (err) {
       console.error('Redesign failed:', err);
       const message = err instanceof Error ? err.message : "Failed to generate redesign. Please try again.";
-      setError(message);
+      toast.error('Redesign failed', message);
       setRedesignState(AppState.SELECTION);
     } finally {
       abortControllerRef.current = null;
@@ -199,7 +327,7 @@ const App: React.FC = () => {
       if (!originalImageBase64) return;
 
       setRedesignState(AppState.GENERATING);
-      setError(null);
+      toast.info('Updating design', 'Applying your feedback...');
 
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
@@ -213,10 +341,11 @@ const App: React.FC = () => {
         const resultImage = await redesignRoomImage(originalImageBase64, prompt, abortControllerRef.current.signal);
         setGeneratedRedesign(resultImage);
         setRedesignState(AppState.COMPLETE);
+        toast.success('Design updated!', 'Your changes have been applied.');
       } catch (err) {
         console.error('Chat-triggered redesign failed:', err);
         const message = err instanceof Error ? err.message : "Failed to update design from chat.";
-        setError(message);
+        toast.error('Update failed', message);
         // Don't set to COMPLETE on error - keep it in current state or revert
         setRedesignState(generatedRedesign ? AppState.COMPLETE : AppState.SELECTION);
       } finally {
@@ -227,13 +356,13 @@ const App: React.FC = () => {
   const handleGenerateNew = async () => {
     if (!generatePrompt.trim() || generateState === AppState.GENERATING) {
       if (!generatePrompt.trim()) {
-        setError("Please describe the image you want to generate.");
+        toast.error('Missing description', 'Please describe the image you want to generate.');
       }
       return;
     }
 
     setGenerateState(AppState.GENERATING);
-    setError(null);
+    toast.info('Generating image', 'Creating your concept from scratch...');
 
     // Create abort controller for this request
     abortControllerRef.current = new AbortController();
@@ -242,10 +371,11 @@ const App: React.FC = () => {
       const resultImage = await generateNewImage(generatePrompt, abortControllerRef.current.signal);
       setGeneratedNewImage(resultImage);
       setGenerateState(AppState.COMPLETE);
+      toast.success('Image generated!', 'Your concept is ready to download.');
     } catch (err) {
       console.error('Image generation failed:', err);
       const message = err instanceof Error ? err.message : "Failed to generate image. Please try again.";
-      setError(message);
+      toast.error('Generation failed', message);
       setGenerateState(AppState.IDLE);
     } finally {
       abortControllerRef.current = null;
@@ -260,7 +390,6 @@ const App: React.FC = () => {
     setGeneratedRedesign(null);
     setSelectedStyleId(null);
     setCustomPrompt('');
-    setError(null);
     setChatMessages([]);
     setIsChatOpen(false);
     setTempUploadedFile(null);
@@ -268,9 +397,64 @@ const App: React.FC = () => {
 
   // --- Components ---
 
+  const KeyboardShortcutsModal = () => {
+    if (!showKeyboardShortcuts) return null;
+
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const modKey = isMac ? '⌘' : 'Ctrl';
+
+    const shortcuts = [
+      { keys: `${modKey} + K`, description: 'Show keyboard shortcuts' },
+      { keys: `${modKey} + U`, description: 'Upload image' },
+      { keys: `${modKey} + Enter`, description: 'Generate/Redesign' },
+      { keys: `${modKey} + /`, description: 'Toggle designer chat' },
+      { keys: `${modKey} + R`, description: 'Reset and start over' },
+      { keys: 'Esc', description: 'Close modals' },
+    ];
+
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowKeyboardShortcuts(false)}></div>
+        <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 animate-scale-in">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
+                <Keyboard size={24} />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900">Keyboard Shortcuts</h2>
+            </div>
+            <button
+              onClick={() => setShowKeyboardShortcuts(false)}
+              className="text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {shortcuts.map((shortcut, index) => (
+              <div key={index} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                <span className="text-slate-600 font-medium">{shortcut.description}</span>
+                <kbd className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg font-mono text-sm border border-slate-200 shadow-sm">
+                  {shortcut.keys}
+                </kbd>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-slate-200 text-center">
+            <p className="text-sm text-slate-500">
+              Press <kbd className="px-2 py-1 bg-slate-100 rounded text-slate-700 font-mono text-xs">Esc</kbd> to close
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const ContextSelectionModal = () => {
     if (!showContextModal) return null;
-    
+
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowContextModal(false)}></div>
@@ -279,9 +463,9 @@ const App: React.FC = () => {
              <h2 className="text-2xl font-bold text-slate-900">What kind of space is this?</h2>
              <p className="text-slate-500 mt-2">Helping us understand the context improves our suggestions.</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <button 
+             <button
                onClick={() => handleContextSelection('Residential')}
                className="group relative bg-slate-50 hover:bg-indigo-50 border-2 border-slate-200 hover:border-indigo-500 rounded-2xl p-8 transition-all duration-300 text-left"
              >
@@ -291,11 +475,11 @@ const App: React.FC = () => {
                 <h3 className="text-xl font-bold text-slate-900 mb-2">Residential</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">Living rooms, bedrooms, kitchens, apartments, and personal spaces.</p>
                 <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity text-indigo-600">
-                   <CheckCircle size={24} />
+                   <CheckCircleIcon size={24} />
                 </div>
              </button>
 
-             <button 
+             <button
                onClick={() => handleContextSelection('Commercial')}
                className="group relative bg-slate-50 hover:bg-purple-50 border-2 border-slate-200 hover:border-purple-500 rounded-2xl p-8 transition-all duration-300 text-left"
              >
@@ -305,7 +489,7 @@ const App: React.FC = () => {
                 <h3 className="text-xl font-bold text-slate-900 mb-2">Commercial</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">Offices, retail stores, lobbies, co-working spaces, and business environments.</p>
                 <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity text-purple-600">
-                   <CheckCircle size={24} />
+                   <CheckCircleIcon size={24} />
                 </div>
              </button>
           </div>
@@ -356,27 +540,41 @@ const App: React.FC = () => {
                 </p>
               </div>
 
-              <div 
+              <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="group relative bg-white hover:bg-slate-50/50 border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-[2rem] p-16 text-center cursor-pointer transition-all duration-300 shadow-2xl shadow-slate-200/50 max-w-3xl mx-auto"
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  className={`group relative bg-white border-2 border-dashed rounded-[2rem] p-16 text-center cursor-pointer transition-all duration-300 shadow-2xl shadow-slate-200/50 max-w-3xl mx-auto ${
+                    isDragging
+                      ? 'border-indigo-500 bg-indigo-50/50 scale-105'
+                      : 'border-slate-300 hover:border-indigo-500 hover:bg-slate-50/50'
+                  }`}
               >
                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] rounded-[2rem] pointer-events-none"></div>
                   <div className="relative z-10 flex flex-col items-center gap-6">
-                    <div className="w-24 h-24 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm">
+                    <div className={`w-24 h-24 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center transition-all duration-300 shadow-sm ${
+                      isDragging ? 'scale-125 rotate-6' : 'group-hover:scale-110 group-hover:rotate-3'
+                    }`}>
                        <Upload size={40} strokeWidth={1.5} />
                     </div>
                     <div className="space-y-2">
-                       <h3 className="text-2xl font-bold text-slate-900">Drop your room photo here</h3>
-                       <p className="text-slate-500 font-medium">or click to browse files</p>
+                       <h3 className="text-2xl font-bold text-slate-900">
+                         {isDragging ? 'Drop your image here!' : 'Drop your room photo here'}
+                       </h3>
+                       <p className="text-slate-500 font-medium">
+                         {isDragging ? 'Release to upload' : 'or click to browse files'}
+                       </p>
                     </div>
                     <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full">Supports JPG, PNG • Max 10MB</span>
                   </div>
-                  <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={handleFileUpload} 
-                      accept="image/*" 
-                      className="hidden" 
+                  <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="image/*"
+                      className="hidden"
                   />
               </div>
             </div>
@@ -386,8 +584,8 @@ const App: React.FC = () => {
     // ANALYZING
     if (redesignState === AppState.ANALYZING) {
         return (
-            <div className="animate-fade-in max-w-2xl mx-auto text-center py-20">
-                <div className="relative inline-block">
+            <div className="animate-fade-in max-w-2xl mx-auto text-center py-20 px-6">
+                <div className="relative inline-block mb-8">
                     <div className="absolute inset-0 bg-indigo-500 blur-2xl opacity-20 rounded-full animate-pulse-slow"></div>
                     <img src={originalImage!} alt="Original" className="relative h-64 w-auto rounded-2xl shadow-2xl object-cover ring-4 ring-white" />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[2px] rounded-2xl">
@@ -397,8 +595,15 @@ const App: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mt-10">Analyzing Architecture</h2>
-                <p className="text-slate-500 mt-2 font-medium">Identifying {roomContext.toLowerCase()} layout features...</p>
+                <h2 className="text-2xl font-bold text-slate-900 mb-4">Analyzing Architecture</h2>
+                <p className="text-slate-500 mb-8 font-medium">Identifying {roomContext.toLowerCase()} layout features...</p>
+                <div className="max-w-md mx-auto">
+                  <ProgressBar
+                    isLoading={true}
+                    estimatedDuration={8000}
+                    label="Processing image"
+                  />
+                </div>
             </div>
         );
     }
@@ -407,7 +612,7 @@ const App: React.FC = () => {
     if (redesignState === AppState.SELECTION || (redesignState === AppState.GENERATING && !generatedRedesign)) {
         return (
             <div className="animate-slide-up max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-8 items-start">
-                
+
                 {/* Left Column: Image & Analysis */}
                 <div className="w-full lg:w-[380px] space-y-6 sticky top-24 shrink-0">
                     <div className="bg-white p-4 rounded-3xl shadow-lg border border-slate-100 ring-1 ring-slate-900/5">
@@ -416,12 +621,12 @@ const App: React.FC = () => {
                            Upload Different Photo
                         </button>
                     </div>
-                    {analysis && <AnalysisPanel analysis={analysis} />}
+                    {analysis ? <AnalysisPanel analysis={analysis} /> : <AnalysisSkeleton />}
                 </div>
 
                 {/* Right Column: Controls */}
                 <div className="w-full flex-grow space-y-6">
-                    
+
                     {/* Header */}
                     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
                        <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
@@ -443,15 +648,15 @@ const App: React.FC = () => {
                               key={`suggested-${idx}`}
                               onClick={() => setSelectedStyleId(`suggested-${idx}`)}
                               className={`relative text-left p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl
-                                ${selectedStyleId === `suggested-${idx}` 
-                                  ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-100' 
+                                ${selectedStyleId === `suggested-${idx}`
+                                  ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-100'
                                   : 'border-white bg-white shadow-sm hover:border-indigo-200'
                                 }`}
                             >
                               <h3 className="font-bold text-slate-900 mb-2">{prompt.title}</h3>
                               <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">{prompt.description}</p>
                               {selectedStyleId === `suggested-${idx}` && (
-                                <div className="absolute top-4 right-4 text-indigo-600"><CheckCircle size={20} /></div>
+                                <div className="absolute top-4 right-4 text-indigo-600"><CheckCircleIcon size={20} /></div>
                               )}
                             </button>
                           ))}
@@ -495,7 +700,7 @@ const App: React.FC = () => {
                         </div>
 
                         <div className={`p-1 rounded-2xl border-2 transition-all duration-300 ${selectedStyleId === 'custom' ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-100 bg-slate-50 hover:border-slate-300'}`}>
-                            <div 
+                            <div
                                 className="flex items-start gap-4 p-4 cursor-pointer"
                                 onClick={() => setSelectedStyleId('custom')}
                             >
@@ -528,8 +733,8 @@ const App: React.FC = () => {
                                 onClick={handleRedesign}
                                 disabled={redesignState === AppState.GENERATING || !selectedStyleId}
                                 className={`flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-white shadow-xl transition-all transform active:scale-95
-                                    ${redesignState === AppState.GENERATING || !selectedStyleId 
-                                        ? 'bg-slate-300 cursor-not-allowed shadow-none' 
+                                    ${redesignState === AppState.GENERATING || !selectedStyleId
+                                        ? 'bg-slate-300 cursor-not-allowed shadow-none'
                                         : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-indigo-500/30 hover:-translate-y-1'}`}
                             >
                                 {redesignState === AppState.GENERATING ? (
@@ -539,6 +744,16 @@ const App: React.FC = () => {
                                 )}
                             </button>
                         </div>
+
+                        {redesignState === AppState.GENERATING && (
+                          <div className="mt-6">
+                            <ProgressBar
+                              isLoading={true}
+                              estimatedDuration={12000}
+                              label="Generating transformation"
+                            />
+                          </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -549,7 +764,7 @@ const App: React.FC = () => {
     if ((redesignState === AppState.COMPLETE || (redesignState === AppState.GENERATING && generatedRedesign)) && originalImage) {
         return (
             <div className="animate-fade-in max-w-7xl mx-auto px-6 space-y-8 py-4 relative">
-                
+
                 {/* Chat Overlay */}
                 <DesignerChat
                    isOpen={isChatOpen}
@@ -565,7 +780,7 @@ const App: React.FC = () => {
 
                 {/* Floating Chat Button (Bottom Left) */}
                 {!isChatOpen && (
-                    <button 
+                    <button
                         onClick={() => setIsChatOpen(true)}
                         className="fixed bottom-6 left-6 z-40 bg-slate-900 text-white px-6 py-4 rounded-full shadow-2xl hover:scale-105 transition-all flex items-center gap-3 font-bold border-2 border-white/10 animate-bounce"
                     >
@@ -583,7 +798,7 @@ const App: React.FC = () => {
                         <p className="text-slate-500 mt-2 font-medium">Drag the slider to reveal the transformation.</p>
                     </div>
                     <div className="flex gap-3">
-                        <button 
+                        <button
                             onClick={() => {
                                 setGeneratedRedesign(null);
                                 setRedesignState(AppState.SELECTION);
@@ -592,8 +807,8 @@ const App: React.FC = () => {
                         >
                             <RefreshCcw size={18} /> Try Another Style
                         </button>
-                        <a 
-                            href={generatedRedesign!} 
+                        <a
+                            href={generatedRedesign!}
                             download="lumina-redesign.png"
                             className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 shadow-lg hover:shadow-xl transition-all font-bold"
                         >
@@ -612,6 +827,13 @@ const App: React.FC = () => {
                                 <h3 className="font-bold text-slate-900">Refining Design...</h3>
                                 <p className="text-sm text-slate-500">Applying your feedback</p>
                              </div>
+                             <div className="w-64">
+                               <ProgressBar
+                                 isLoading={true}
+                                 estimatedDuration={12000}
+                                 label="Processing"
+                               />
+                             </div>
                           </div>
                       </div>
                    )}
@@ -622,10 +844,10 @@ const App: React.FC = () => {
                    <div className="bg-white/80 backdrop-blur p-8 rounded-3xl border border-slate-200 shadow-sm">
                        <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Sparkles size={18} className="text-indigo-500"/> Style Applied</h3>
                        <p className="text-slate-600 leading-relaxed">
-                          {selectedStyleId === 'custom' 
-                             ? `Custom: "${customPrompt}"` 
-                             : selectedStyleId?.startsWith('suggested-') 
-                                ? analysis?.suggestedPrompts[parseInt(selectedStyleId.split('-')[1])].title 
+                          {selectedStyleId === 'custom'
+                             ? `Custom: "${customPrompt}"`
+                             : selectedStyleId?.startsWith('suggested-')
+                                ? analysis?.suggestedPrompts[parseInt(selectedStyleId.split('-')[1])].title
                                 : DESIGN_STYLES.find(s => s.id === selectedStyleId)?.name || "Refined Design"}
                        </p>
                    </div>
@@ -649,7 +871,7 @@ const App: React.FC = () => {
   };
 
   // CheckCircle Helper
-  const CheckCircle = ({ size }: { size: number }) => (
+  const CheckCircleIcon = ({ size }: { size: number }) => (
     <div className={`bg-indigo-600 rounded-full p-0.5 text-white flex items-center justify-center`} style={{ width: size, height: size }}>
         <Check size={size - 4} strokeWidth={4} />
     </div>
@@ -679,9 +901,9 @@ const App: React.FC = () => {
                         Powered by Imagen 4.0
                     </div>
                 </div>
-                
+
                 <div className="mt-8 flex justify-end">
-                    <button 
+                    <button
                     onClick={handleGenerateNew}
                     disabled={generateState === AppState.GENERATING}
                     className={`px-10 py-4 rounded-xl font-bold text-white shadow-xl shadow-purple-200 flex items-center gap-3 transition-all transform hover:-translate-y-1
@@ -691,6 +913,16 @@ const App: React.FC = () => {
                     Generate Concept
                     </button>
                 </div>
+
+                {generateState === AppState.GENERATING && (
+                  <div className="mt-6">
+                    <ProgressBar
+                      isLoading={true}
+                      estimatedDuration={15000}
+                      label="Creating your masterpiece"
+                    />
+                  </div>
+                )}
             </div>
 
             {(generatedNewImage || generateState === AppState.GENERATING) && (
@@ -712,14 +944,14 @@ const App: React.FC = () => {
                                  <img src={generatedNewImage} alt="Generated" className="w-full rounded-xl" />
                              </div>
                              <div className="flex justify-center gap-4">
-                                 <a 
+                                 <a
                                     href={generatedNewImage}
                                     download="lumina-generated.jpg"
                                     className="flex items-center gap-2 bg-purple-600 text-white px-8 py-3 rounded-xl hover:bg-purple-700 font-bold shadow-lg hover:shadow-purple-200 transition-all"
                                  >
                                      <Download size={18} /> Download Image
                                  </a>
-                                 <button 
+                                 <button
                                     onClick={() => setGeneratedNewImage(null)}
                                     className="flex items-center gap-2 bg-white border border-slate-200 px-6 py-3 rounded-xl text-slate-600 hover:bg-slate-50 font-bold shadow-sm transition-all"
                                  >
@@ -736,6 +968,12 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col text-slate-900">
+      {/* Toast Container */}
+      <ToastContainer toasts={toast.toasts} onClose={toast.closeToast} />
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal />
+
       {/* Context Modal */}
       <ContextSelectionModal />
 
@@ -748,20 +986,30 @@ const App: React.FC = () => {
             </div>
             <span className="text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">Lumina</span>
           </div>
-          
-          <nav className="flex bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/50">
+
+          <nav className="flex items-center gap-4">
+             <div className="flex bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/50">
+               <button
+                  onClick={() => setActiveTab(Tab.REDESIGN)}
+                  className={`px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === Tab.REDESIGN ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-900'}`}
+                >
+                  Redesign Room
+                </button>
+                <button
+                  onClick={() => setActiveTab(Tab.GENERATE)}
+                  className={`px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === Tab.GENERATE ? 'bg-white text-purple-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-900'}`}
+                >
+                  Create New
+                </button>
+             </div>
+
              <button
-                onClick={() => setActiveTab(Tab.REDESIGN)}
-                className={`px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === Tab.REDESIGN ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-900'}`}
-              >
-                Redesign Room
-              </button>
-              <button
-                onClick={() => setActiveTab(Tab.GENERATE)}
-                className={`px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === Tab.GENERATE ? 'bg-white text-purple-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-900'}`}
-              >
-                Create New
-              </button>
+               onClick={() => setShowKeyboardShortcuts(true)}
+               className="p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-all"
+               title="Keyboard shortcuts (Cmd/Ctrl + K)"
+             >
+               <Keyboard size={20} />
+             </button>
           </nav>
         </div>
       </header>
@@ -769,13 +1017,6 @@ const App: React.FC = () => {
       {/* Main Content */}
       <main className="flex-grow pt-8 pb-20">
         {activeTab === Tab.REDESIGN && redesignState !== AppState.IDLE && redesignState !== AppState.COMPLETE && <StepIndicator />}
-
-        {error && (
-            <div className="max-w-lg mx-auto mb-8 bg-red-50 border border-red-100 text-red-600 px-6 py-4 rounded-2xl flex items-start gap-3 shadow-sm animate-fade-in">
-                <div className="mt-0.5 bg-red-100 p-1 rounded-full"><ArrowRight className="rotate-180" size={14} /></div>
-                <p className="font-bold text-sm">{error}</p>
-            </div>
-        )}
 
         <div style={{ display: activeTab === Tab.REDESIGN ? 'block' : 'none' }}>
            {renderRedesignFlow()}
