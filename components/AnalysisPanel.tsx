@@ -8,7 +8,7 @@ interface AnalysisPanelProps {
 
 export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ analysis }) => {
   return (
-    <div className="glass-card animate-fade-in hover-lift">
+    <div className="bg-white/85 backdrop-blur-[16px] saturate-[180%] border border-white/80 rounded-2xl shadow-lg transition-all duration-300 hover:bg-white/95 hover:shadow-xl hover:-translate-y-1 p-6 animate-fade-in">
       <div className="flex items-center justify-between mb-6 pb-5 border-b border-slate-200/80">
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -18,7 +18,7 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ analysis }) => {
             </div>
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight gradient-text">Room Analysis</h2>
+            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent">Room Analysis</h2>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">{analysis.roomType || 'Room'}</p>
           </div>
         </div>
@@ -35,7 +35,7 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ analysis }) => {
             {(analysis.architecturalFeatures || []).slice(0, 5).map((item, idx) => (
               <span
                 key={idx}
-                className="bg-white/90 text-indigo-900 text-xs font-semibold px-3 py-1.5 rounded-lg border border-indigo-200/60 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 hover-shimmer backdrop-blur-sm"
+                className="relative overflow-hidden bg-white/90 text-indigo-900 text-xs font-semibold px-3 py-1.5 rounded-lg border border-indigo-200/60 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 backdrop-blur-sm before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/40 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-500"
               >
                 {item}
               </span>

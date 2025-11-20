@@ -173,72 +173,23 @@ p {
 }
 
 /* ============================================
-   GLASSMORPHISM COMPONENTS
+   GLASSMORPHISM UTILITIES
    ============================================ */
-.glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-lg), 0 0 0 1px var(--glass-shadow);
-  transition: all var(--transition-base);
-}
-
-.glass-card:hover {
-  background: var(--glass-bg-strong);
-  box-shadow: var(--shadow-xl), 0 0 0 1px var(--glass-shadow);
-  transform: translateY(-2px);
-}
-
-.glass-panel {
-  background: var(--glass-bg-strong);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: var(--shadow-2xl);
-}
-
-.glass-button {
-  background: rgba(139, 92, 246, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  transition: all var(--transition-base);
-}
-
-.glass-button:hover {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.4);
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-}
+/* Glassmorphism is now implemented directly with Tailwind utilities:
+   - bg-white/85 backdrop-blur-[16px] saturate-[180%] border border-white/80
+   - Example: class="bg-white/85 backdrop-blur-[16px] saturate-[180%] border border-white/80 rounded-2xl shadow-lg"
+*/
 
 /* ============================================
    GRADIENT UTILITIES
    ============================================ */
-.gradient-primary {
-  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-800));
-}
+/* Most gradients are now implemented with Tailwind utilities:
+   - gradient-primary: bg-gradient-to-br from-primary-600 to-primary-800
+   - gradient-accent: bg-gradient-to-br from-pink-500 to-orange-500
+   - gradient-text: bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent
+*/
 
-.gradient-accent {
-  background: linear-gradient(135deg, var(--color-accent-pink), var(--color-accent-orange));
-}
-
-.gradient-sunset {
-  background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-amber), var(--color-accent-pink));
-}
-
-.gradient-aurora {
-  background: linear-gradient(135deg, var(--color-primary-400), var(--color-accent-pink), var(--color-accent-orange));
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, var(--color-primary-600), var(--color-accent-pink));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Animated Gradient Background */
+/* Animated Gradient (not easily replicated with Tailwind) */
 .gradient-animated {
   background: linear-gradient(
     -45deg,
@@ -381,92 +332,12 @@ p {
 /* ============================================
    MICRO-INTERACTIONS
    ============================================ */
-.interactive {
-  position: relative;
-  overflow: hidden;
-  transition: all var(--transition-base);
-}
-
-.interactive::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-.interactive:active::before {
-  width: 300px;
-  height: 300px;
-}
-
-/* Hover Lift Effect */
-.hover-lift {
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-}
-
-.hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
-}
-
-.hover-lift:active {
-  transform: translateY(-2px);
-}
-
-/* Hover Glow Effect */
-.hover-glow {
-  transition: all var(--transition-base);
-}
-
-.hover-glow:hover {
-  box-shadow: var(--shadow-glow);
-  border-color: var(--color-primary-400);
-}
-
-/* Scale on Hover */
-.hover-scale {
-  transition: transform var(--transition-base);
-}
-
-.hover-scale:hover {
-  transform: scale(1.05);
-}
-
-.hover-scale:active {
-  transform: scale(0.98);
-}
-
-/* Shimmer on Hover */
-.hover-shimmer {
-  position: relative;
-  overflow: hidden;
-}
-
-.hover-shimmer::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
-    transparent
-  );
-  transition: left 0.5s;
-}
-
-.hover-shimmer:hover::after {
-  left: 100%;
-}
+/* Most micro-interactions are now implemented with Tailwind utilities:
+   - hover-lift: hover:-translate-y-1 hover:shadow-xl transition-all
+   - hover-glow: hover:shadow-glow hover:border-primary-400 transition-all
+   - hover-scale: hover:scale-105 active:scale-98 transition-transform
+   - hover-shimmer: Use before: pseudo-class utilities as shown in components
+*/
 
 /* ============================================
    CUSTOM SCROLLBAR
@@ -515,162 +386,24 @@ p {
 }
 
 /* ============================================
-   BUTTON STYLES
+   COMPONENT STYLES
    ============================================ */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  line-height: 1;
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-base);
-  cursor: pointer;
-  border: none;
-  outline: none;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
-  color: white;
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, var(--color-primary-700), var(--color-primary-800));
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
-  transform: translateY(-2px);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-secondary {
-  background: white;
-  color: var(--color-primary-600);
-  border: 2px solid var(--color-primary-200);
-}
-
-.btn-secondary:hover {
-  background: var(--color-primary-50);
-  border-color: var(--color-primary-400);
-  transform: translateY(-2px);
-}
-
-.btn-glass {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-}
-
-.btn-glass:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-/* ============================================
-   CARD STYLES
-   ============================================ */
-.card {
-  background: white;
-  border-radius: var(--radius-2xl);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-neutral-200);
-  transition: all var(--transition-base);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  border-color: var(--color-neutral-300);
-}
-
-.card-interactive {
-  cursor: pointer;
-}
-
-.card-interactive:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
-}
-
-.card-interactive:active {
-  transform: translateY(-2px);
-}
-
-/* ============================================
-   BADGE STYLES
-   ============================================ */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: var(--radius-full);
-  transition: all var(--transition-fast);
-}
-
-.badge-primary {
-  background: var(--color-primary-100);
-  color: var(--color-primary-700);
-}
-
-.badge-success {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--color-success);
-}
-
-.badge-warning {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--color-warning);
-}
-
-.badge-error {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--color-error);
-}
+/* Buttons, cards, and badges are now implemented with Tailwind utilities:
+   - Primary Button: bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-lg hover:shadow-glow
+   - Card: bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-lg
+   - Badge: inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full
+*/
 
 /* ============================================
    UTILITY CLASSES
    ============================================ */
-.blur-background {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.blur-strong {
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-}
-
-.shadow-soft {
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
-}
-
-.shadow-medium {
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
-
-.shadow-strong {
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
-}
-
-.glow-primary {
-  box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
-}
-
-.glow-accent {
-  box-shadow: 0 0 30px rgba(236, 72, 153, 0.4);
-}
+/* Most utilities are now Tailwind utilities in tailwind.config (see index.html):
+   - shadow-soft: Custom shadow defined in config
+   - shadow-medium: Custom shadow defined in config
+   - shadow-strong: Custom shadow defined in config
+   - shadow-glow: Custom shadow defined in config
+   - backdrop-blur-*: Native Tailwind utilities
+*/
 
 /* ============================================
    RESPONSIVE UTILITIES
@@ -678,12 +411,6 @@ p {
 @media (max-width: 768px) {
   :root {
     font-size: 14px;
-  }
-
-  .glass-card,
-  .glass-panel {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
   }
 }
 
@@ -708,26 +435,10 @@ select:focus-visible {
 /* ============================================
    LOADING STATES
    ============================================ */
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-neutral-200) 0%,
-    var(--color-neutral-100) 50%,
-    var(--color-neutral-200) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-md);
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--color-neutral-200);
-  border-top-color: var(--color-primary-600);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
+/* Loading states are now implemented with Tailwind utilities:
+   - Skeleton: bg-slate-200 animate-pulse rounded
+   - Spinner: border-4 border-slate-200 border-t-primary-600 rounded-full animate-spin
+*/
 
 /* ============================================
    PRINT STYLES
@@ -739,11 +450,5 @@ select:focus-visible {
 
   body::before {
     display: none;
-  }
-
-  .glass-card,
-  .glass-panel {
-    background: white;
-    border: 1px solid #ddd;
   }
 }

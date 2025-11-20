@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const SkeletonBox: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`bg-slate-200 animate-pulse rounded ${className}`}></div>
+  <div className={`bg-slate-200 animate-pulse rounded ${className}`} role="status" aria-label="Loading..."></div>
 );
 
 export const AnalysisSkeleton: React.FC = () => (

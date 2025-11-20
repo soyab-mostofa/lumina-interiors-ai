@@ -67,7 +67,7 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImag
           alt="Redesigned Room"
           className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <div className="absolute top-5 right-5 glass-button px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase z-10 shadow-soft backdrop-blur-md text-white animate-slide-in-right">
+        <div className="absolute top-5 right-5 bg-indigo-500/10 backdrop-blur-[10px] border border-indigo-500/20 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase z-10 shadow-[0_2px_20px_rgba(0,0,0,0.05)] text-white animate-slide-in-right transition-all hover:bg-indigo-500/20 hover:border-indigo-500/40 hover:shadow-glow">
           <span className="relative z-10">After</span>
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full opacity-80"></div>
         </div>
@@ -83,7 +83,7 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImag
             className="absolute top-0 left-0 w-full max-w-none h-full object-cover transition-transform duration-300 group-hover:scale-105"
             style={{ width: containerRef.current ? containerRef.current.offsetWidth : '100%' }}
           />
-          <div className="absolute top-5 left-5 glass-card px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase z-10 shadow-soft backdrop-blur-md text-slate-900 animate-slide-up">
+          <div className="absolute top-5 left-5 bg-white/85 backdrop-blur-[16px] saturate-[180%] border border-white/80 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase z-10 shadow-[0_2px_20px_rgba(0,0,0,0.05)] text-slate-900 animate-slide-up">
             <span className="relative z-10">Before</span>
           </div>
         </div>
@@ -112,7 +112,7 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImag
       </div>
 
       <div className="mt-5 flex justify-center">
-        <div className="glass-card px-5 py-2 rounded-full text-xs font-semibold text-slate-600 flex items-center gap-2 animate-pulse-slow shadow-soft">
+        <div className="bg-white/85 backdrop-blur-[16px] saturate-[180%] border border-white/80 px-5 py-2 rounded-full text-xs font-semibold text-slate-600 flex items-center gap-2 animate-pulse-slow shadow-[0_2px_20px_rgba(0,0,0,0.05)]">
           <ChevronsLeftRight size={14} className="text-indigo-500" />
           <span>Drag slider to compare</span>
         </div>
