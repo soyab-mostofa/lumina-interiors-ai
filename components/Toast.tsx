@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -136,9 +136,9 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
 
 // Hook for managing toasts
 export const useToast = () => {
-  const [toasts, setToasts] = React.useState<Toast[]>([]);
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = React.useCallback(
+  const showToast = useCallback(
     (
       type: ToastType,
       title: string,
@@ -152,26 +152,26 @@ export const useToast = () => {
     []
   );
 
-  const closeToast = React.useCallback((id: string) => {
+  const closeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
-  const success = React.useCallback(
+  const success = useCallback(
     (title: string, message?: string) => showToast('success', title, message),
     [showToast]
   );
 
-  const error = React.useCallback(
+  const error = useCallback(
     (title: string, message?: string) => showToast('error', title, message, 7000),
     [showToast]
   );
 
-  const warning = React.useCallback(
+  const warning = useCallback(
     (title: string, message?: string) => showToast('warning', title, message),
     [showToast]
   );
 
-  const info = React.useCallback(
+  const info = useCallback(
     (title: string, message?: string) => showToast('info', title, message),
     [showToast]
   );
