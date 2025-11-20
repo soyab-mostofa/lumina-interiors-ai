@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { 
-  Upload, 
-  Wand2, 
-  RefreshCcw, 
-  Download, 
-  ImagePlus, 
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import {
+  Upload,
+  Wand2,
+  RefreshCcw,
+  Download,
+  ImagePlus,
   Palette,
   Loader2,
   ArrowRight,
@@ -20,7 +20,7 @@ import {
   Building2
 } from 'lucide-react';
 import { AppState, DESIGN_STYLES, RoomAnalysis, ChatMessage } from './types';
-import { analyzeRoomImage, redesignRoomImage, generateNewImage, fileToBase64 } from './services/geminiService';
+import { analyzeRoomImage, redesignRoomImage, generateNewImage, fileToBase64, extractBase64 } from './services/geminiService';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { AnalysisPanel } from './components/AnalysisPanel';
 import { DesignerChat } from './components/DesignerChat';
@@ -66,6 +66,25 @@ const App: React.FC = () => {
   const [generatedNewImage, setGeneratedNewImage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cleanup URL.createObjectURL to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (originalImage) {
+        URL.revokeObjectURL(originalImage);
+      }
+    };
+  }, [originalImage]);
+
+  // Cleanup on unmount - abort any in-flight requests
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // --- Computed Step for Redesign ---
   const getCurrentRedesignStep = () => {
@@ -97,7 +116,7 @@ const App: React.FC = () => {
 
     setRoomContext(context);
     setShowContextModal(false);
-    
+
     // Start Analysis Flow
     setRedesignState(AppState.ANALYZING);
     setOriginalImage(URL.createObjectURL(tempUploadedFile));
@@ -106,29 +125,35 @@ const App: React.FC = () => {
     setSelectedStyleId(null);
     setChatMessages([]);
     setActiveTab(Tab.REDESIGN); // Ensure we are on the right tab
+    setError(null);
+
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
 
     try {
       const base64 = await fileToBase64(tempUploadedFile);
       setOriginalImageBase64(base64);
 
       // Trigger Analysis with Context Hint
-      const result = await analyzeRoomImage(base64, context);
+      const result = await analyzeRoomImage(base64, context, abortControllerRef.current.signal);
       setAnalysis(result);
       setRedesignState(AppState.SELECTION);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to analyze image. Please try a smaller image.");
+    } catch (err) {
+      console.error('Analysis failed:', err);
+      const message = err instanceof Error ? err.message : "Failed to analyze image. Please try again.";
+      setError(message);
       setRedesignState(AppState.IDLE);
     } finally {
       setTempUploadedFile(null);
+      abortControllerRef.current = null;
     }
   };
 
   const handleRedesign = async () => {
-    if (!originalImageBase64) return;
+    if (!originalImageBase64 || redesignState === AppState.GENERATING) return;
 
     let finalPrompt = '';
-    
+
     if (selectedStyleId?.startsWith('suggested-')) {
       // Handle AI suggested prompt
       const index = parseInt(selectedStyleId.split('-')[1]);
@@ -153,55 +178,77 @@ const App: React.FC = () => {
     setRedesignState(AppState.GENERATING);
     setError(null);
 
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
+
     try {
-      // Pass context context to the prompt just in case, though usually prompt suffix handles it.
-      // Actually redesignRoomImage handles prompt construction.
-      const resultImage = await redesignRoomImage(originalImageBase64, finalPrompt);
+      const resultImage = await redesignRoomImage(originalImageBase64, finalPrompt, abortControllerRef.current.signal);
       setGeneratedRedesign(resultImage);
       setRedesignState(AppState.COMPLETE);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to generate redesign. Try a simpler request.");
+    } catch (err) {
+      console.error('Redesign failed:', err);
+      const message = err instanceof Error ? err.message : "Failed to generate redesign. Please try again.";
+      setError(message);
       setRedesignState(AppState.SELECTION);
+    } finally {
+      abortControllerRef.current = null;
     }
   };
 
   const handleChatTriggeredRedesign = async (prompt: string) => {
       if (!originalImageBase64) return;
-      
+
       setRedesignState(AppState.GENERATING);
-      
+      setError(null);
+
+      // Create abort controller for this request
+      abortControllerRef.current = new AbortController();
+
       try {
         // We use the ORIGINAL image as base for better quality, but the prompt
         // from the Chat AI is smart enough to include "Keep current changes" logic if needed.
-        // For a truly iterative flow, we might want to use generatedRedesign, 
+        // For a truly iterative flow, we might want to use generatedRedesign,
         // but re-generating from original is often cleaner to avoid artifact compounding.
         // The Chat prompt logic (State Manager) handles the cumulative state.
-        const resultImage = await redesignRoomImage(originalImageBase64, prompt);
+        const resultImage = await redesignRoomImage(originalImageBase64, prompt, abortControllerRef.current.signal);
         setGeneratedRedesign(resultImage);
         setRedesignState(AppState.COMPLETE);
       } catch (err) {
-        setError("Failed to update design from chat.");
-        setRedesignState(AppState.COMPLETE); 
+        console.error('Chat-triggered redesign failed:', err);
+        const message = err instanceof Error ? err.message : "Failed to update design from chat.";
+        setError(message);
+        // Don't set to COMPLETE on error - keep it in current state or revert
+        setRedesignState(generatedRedesign ? AppState.COMPLETE : AppState.SELECTION);
+      } finally {
+        abortControllerRef.current = null;
       }
   };
 
   const handleGenerateNew = async () => {
-    if (!generatePrompt.trim()) {
-      setError("Please describe the image you want to generate.");
+    if (!generatePrompt.trim() || generateState === AppState.GENERATING) {
+      if (!generatePrompt.trim()) {
+        setError("Please describe the image you want to generate.");
+      }
       return;
     }
 
     setGenerateState(AppState.GENERATING);
     setError(null);
 
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
+
     try {
-      const resultImage = await generateNewImage(generatePrompt);
+      const resultImage = await generateNewImage(generatePrompt, abortControllerRef.current.signal);
       setGeneratedNewImage(resultImage);
       setGenerateState(AppState.COMPLETE);
     } catch (err) {
-      setError("Failed to generate image. Please try again.");
+      console.error('Image generation failed:', err);
+      const message = err instanceof Error ? err.message : "Failed to generate image. Please try again.";
+      setError(message);
       setGenerateState(AppState.IDLE);
+    } finally {
+      abortControllerRef.current = null;
     }
   };
 
@@ -504,10 +551,10 @@ const App: React.FC = () => {
             <div className="animate-fade-in max-w-7xl mx-auto px-6 space-y-8 py-4 relative">
                 
                 {/* Chat Overlay */}
-                <DesignerChat 
+                <DesignerChat
                    isOpen={isChatOpen}
                    onClose={() => setIsChatOpen(false)}
-                   currentImageBase64={generatedRedesign ? generatedRedesign.split(',')[1] : originalImageBase64!}
+                   currentImageBase64={generatedRedesign ? extractBase64(generatedRedesign) : originalImageBase64!}
                    originalImageBase64={originalImageBase64!}
                    analysis={analysis}
                    roomContext={roomContext}
