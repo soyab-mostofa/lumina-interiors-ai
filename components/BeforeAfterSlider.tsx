@@ -46,9 +46,12 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImag
 
   return (
     <div className="relative w-full group select-none">
-      <div 
+      {/* Glow effect on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500 -z-10"></div>
+
+      <div
         ref={containerRef}
-        className="relative w-full aspect-[4/3] md:aspect-[16/9] overflow-hidden rounded-3xl shadow-2xl cursor-ew-resize ring-4 ring-white"
+        className="relative w-full aspect-[4/3] md:aspect-[16/9] overflow-hidden rounded-3xl shadow-strong cursor-ew-resize ring-1 ring-white/50 hover:ring-2 hover:ring-indigo-400/50 transition-all duration-300"
         onMouseDown={(e) => {
           setIsDragging(true);
           handleMove(e.clientX);
@@ -62,44 +65,57 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImag
         <img
           src={afterImage}
           alt="Redesigned Room"
-          className="absolute top-0 left-0 w-full h-full object-cover"
+          className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <div className="absolute top-6 right-6 bg-black/40 backdrop-blur-md text-white px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase z-10 border border-white/20">
-          After
+        <div className="absolute top-5 right-5 glass-button px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase z-10 shadow-soft backdrop-blur-md text-white animate-slide-in-right">
+          <span className="relative z-10">After</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full opacity-80"></div>
         </div>
 
         {/* Before Image (Clipped Foreground) */}
         <div
-          className="absolute top-0 left-0 h-full overflow-hidden border-r border-white/50"
+          className="absolute top-0 left-0 h-full overflow-hidden border-r-2 border-white/80 shadow-[4px_0_20px_rgba(0,0,0,0.1)]"
           style={{ width: `${sliderPosition}%` }}
         >
           <img
             src={beforeImage}
             alt="Original Room"
-            className="absolute top-0 left-0 w-full max-w-none h-full object-cover"
+            className="absolute top-0 left-0 w-full max-w-none h-full object-cover transition-transform duration-300 group-hover:scale-105"
             style={{ width: containerRef.current ? containerRef.current.offsetWidth : '100%' }}
           />
-          <div className="absolute top-6 left-6 bg-white/80 backdrop-blur-md text-slate-900 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase z-10 border border-white/50 shadow-sm">
-            Before
+          <div className="absolute top-5 left-5 glass-card px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase z-10 shadow-soft backdrop-blur-md text-slate-900 animate-slide-up">
+            <span className="relative z-10">Before</span>
           </div>
         </div>
 
-        {/* Slider Handle Line */}
+        {/* Slider Handle Line with Glow */}
         <div
-          className="absolute top-0 bottom-0 w-0.5 bg-white/80 cursor-ew-resize z-20 shadow-[0_0_10px_rgba(0,0,0,0.2)]"
+          className="absolute top-0 bottom-0 w-1 cursor-ew-resize z-20"
           style={{ left: `${sliderPosition}%` }}
         >
-           {/* Handle Circle */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-[0_0_20px_rgba(0,0,0,0.25)] flex items-center justify-center text-indigo-600 hover:scale-110 hover:text-indigo-700 transition-all border-4 border-white/20">
-             <ChevronsLeftRight size={22} />
+          {/* Glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-400 via-purple-400 to-pink-400 blur-sm opacity-80"></div>
+          {/* Solid line */}
+          <div className="absolute inset-0 bg-white shadow-lg"></div>
+
+          {/* Handle Circle with enhanced interaction */}
+          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-gradient-to-br from-white to-slate-50 rounded-full shadow-glow-lg flex items-center justify-center text-indigo-600 transition-all duration-300 border-4 border-white ${
+            isDragging ? 'scale-110 shadow-glow-lg' : 'hover:scale-110 hover:shadow-glow'
+          }`}>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10"></div>
+            <ChevronsLeftRight size={24} className={`relative z-10 transition-all ${isDragging ? 'scale-110' : ''}`} />
           </div>
         </div>
+
+        {/* Interactive hint overlay (shows on first hover) */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 pointer-events-none"></div>
       </div>
-      
-      <div className="mt-4 flex justify-center">
-        <p className="bg-white/50 backdrop-blur px-4 py-1 rounded-full text-xs font-semibold text-slate-500 animate-pulse">
-          Drag slider to compare
-        </p>
+
+      <div className="mt-5 flex justify-center">
+        <div className="glass-card px-5 py-2 rounded-full text-xs font-semibold text-slate-600 flex items-center gap-2 animate-pulse-slow shadow-soft">
+          <ChevronsLeftRight size={14} className="text-indigo-500" />
+          <span>Drag slider to compare</span>
+        </div>
       </div>
     </div>
   );

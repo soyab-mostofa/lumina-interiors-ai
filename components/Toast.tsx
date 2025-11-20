@@ -27,42 +27,83 @@ const ToastItem: React.FC<ToastProps> = ({ toast, onClose }) => {
   }, [toast.id, toast.duration, onClose]);
 
   const icons = {
-    success: <CheckCircle size={20} className="text-emerald-500" />,
-    error: <XCircle size={20} className="text-red-500" />,
-    warning: <AlertCircle size={20} className="text-amber-500" />,
-    info: <Info size={20} className="text-blue-500" />,
+    success: <CheckCircle size={22} className="text-emerald-500 animate-scale-in" />,
+    error: <XCircle size={22} className="text-red-500 animate-scale-in" />,
+    warning: <AlertCircle size={22} className="text-amber-500 animate-scale-in" />,
+    info: <Info size={22} className="text-blue-500 animate-scale-in" />,
   };
 
-  const backgrounds = {
-    success: 'bg-emerald-50 border-emerald-200',
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-amber-50 border-amber-200',
-    info: 'bg-blue-50 border-blue-200',
+  const styles = {
+    success: {
+      bg: 'bg-gradient-to-br from-emerald-50/95 to-teal-50/95',
+      border: 'border-emerald-300/50',
+      iconBg: 'bg-emerald-100/80',
+      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.2)]',
+    },
+    error: {
+      bg: 'bg-gradient-to-br from-red-50/95 to-rose-50/95',
+      border: 'border-red-300/50',
+      iconBg: 'bg-red-100/80',
+      glow: 'shadow-[0_0_20px_rgba(239,68,68,0.2)]',
+    },
+    warning: {
+      bg: 'bg-gradient-to-br from-amber-50/95 to-orange-50/95',
+      border: 'border-amber-300/50',
+      iconBg: 'bg-amber-100/80',
+      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.2)]',
+    },
+    info: {
+      bg: 'bg-gradient-to-br from-blue-50/95 to-indigo-50/95',
+      border: 'border-blue-300/50',
+      iconBg: 'bg-blue-100/80',
+      glow: 'shadow-[0_0_20px_rgba(59,130,246,0.2)]',
+    },
   };
+
+  const style = styles[toast.type];
 
   return (
     <div
-      className={`${backgrounds[toast.type]} border rounded-xl shadow-lg p-4 min-w-[320px] max-w-md animate-slide-up backdrop-blur-xl`}
+      className={`${style.bg} ${style.border} ${style.glow} border-2 rounded-2xl shadow-strong p-4 min-w-[320px] max-w-md animate-slide-in-right backdrop-blur-xl hover:shadow-medium transition-all duration-300 group`}
       role="alert"
     >
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 mt-0.5">{icons[toast.type]}</div>
+      <div className="flex items-start gap-3.5">
+        <div className={`flex-shrink-0 mt-0.5 p-2 rounded-xl ${style.iconBg} shadow-soft group-hover:scale-110 transition-transform`}>
+          {icons[toast.type]}
+        </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-slate-900 text-sm">{toast.title}</p>
+          <p className="font-extrabold text-slate-900 text-sm tracking-tight">{toast.title}</p>
           {toast.message && (
-            <p className="text-slate-600 text-xs mt-1 leading-relaxed">
+            <p className="text-slate-600 text-xs mt-1.5 leading-relaxed">
               {toast.message}
             </p>
           )}
         </div>
         <button
           onClick={() => onClose(toast.id)}
-          className="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
+          className="flex-shrink-0 text-slate-400 hover:text-slate-700 transition-all hover:scale-110 hover:rotate-90 p-1 rounded-lg hover:bg-slate-200/50"
           aria-label="Close notification"
         >
           <X size={16} />
         </button>
       </div>
+
+      {/* Progress bar */}
+      <div className="mt-3 h-1 bg-slate-200/50 rounded-full overflow-hidden">
+        <div
+          className={`h-full ${style.iconBg} rounded-full transition-all`}
+          style={{
+            animation: `shrink ${toast.duration || 5000}ms linear forwards`,
+          }}
+        ></div>
+      </div>
+
+      <style>{`
+        @keyframes shrink {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
     </div>
   );
 };
