@@ -48,7 +48,7 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImag
     <div className="relative w-full group select-none">
       <div
         ref={containerRef}
-        className="relative w-full aspect-[4/3] md:aspect-[16/9] overflow-hidden rounded-lg border border-slate-200 cursor-ew-resize"
+        className="relative w-full aspect-[4/3] md:aspect-[16/9] overflow-hidden rounded-xl border-2 border-slate-200 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow"
         onMouseDown={(e) => {
           setIsDragging(true);
           handleMove(e.clientX);
@@ -63,14 +63,15 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImag
           src={afterImage}
           alt="Redesigned Room"
           className="absolute top-0 left-0 w-full h-full object-cover"
+          draggable={false}
         />
-        <div className="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-sm px-3 py-1.5 rounded-md text-xs font-medium text-white z-10">
+        <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs font-semibold text-white z-10 shadow-sm">
           After
         </div>
 
         {/* Before Image (Clipped Foreground) */}
         <div
-          className="absolute top-0 left-0 h-full overflow-hidden border-r-2 border-white"
+          className="absolute top-0 left-0 h-full overflow-hidden border-r-[3px] border-white shadow-[2px_0_8px_rgba(0,0,0,0.1)]"
           style={{ width: `${sliderPosition}%` }}
         >
           <img
@@ -78,30 +79,36 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImag
             alt="Original Room"
             className="absolute top-0 left-0 w-full max-w-none h-full object-cover"
             style={{ width: containerRef.current ? containerRef.current.offsetWidth : '100%' }}
+            draggable={false}
           />
-          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm border border-slate-200 px-3 py-1.5 rounded-md text-xs font-medium text-slate-900 z-10">
+          <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-900 z-10 shadow-sm">
             Before
           </div>
         </div>
 
         {/* Slider Handle Line */}
         <div
-          className="absolute top-0 bottom-0 w-0.5 bg-white cursor-ew-resize z-20 shadow-sm"
+          className="absolute top-0 bottom-0 w-1 bg-white cursor-grab active:cursor-grabbing z-20 shadow-lg"
           style={{ left: `${sliderPosition}%` }}
         >
           {/* Handle Circle */}
-          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-slate-600 border border-slate-200 ${
-            isDragging ? 'scale-110' : ''
+          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-700 border-2 border-slate-200 transition-all ${
+            isDragging ? 'scale-110 shadow-xl border-slate-300' : 'hover:scale-105 hover:shadow-xl'
           }`}>
-            <ChevronsLeftRight size={18} />
+            <ChevronsLeftRight size={20} strokeWidth={2.5} />
           </div>
+
+          {/* Pulsing hint indicator (shows on hover when not dragging) */}
+          {!isDragging && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-slate-400/20 rounded-full animate-ping opacity-0 group-hover:opacity-100" />
+          )}
         </div>
       </div>
 
-      <div className="mt-4 flex justify-center">
-        <div className="text-xs text-slate-500 flex items-center gap-1.5">
-          <ChevronsLeftRight size={12} className="text-slate-400" />
-          <span>Drag to compare</span>
+      <div className="mt-5 flex justify-center">
+        <div className="text-sm text-slate-600 flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full">
+          <ChevronsLeftRight size={16} className="text-slate-400" />
+          <span className="font-medium">Drag to compare before & after</span>
         </div>
       </div>
     </div>

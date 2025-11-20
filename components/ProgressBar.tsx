@@ -50,18 +50,21 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   if (!isLoading && progress === 0) return null;
 
   return (
-    <div className="w-full space-y-2">
+    <div className="w-full space-y-3">
       <div className="flex justify-between items-center">
-        <span className="text-sm text-slate-600">{label}</span>
-        <span className="text-sm text-slate-500">
+        <span className="text-sm font-medium text-slate-700">{label}</span>
+        <span className="text-sm font-semibold text-slate-600 tabular-nums">
           {Math.round(progress)}%
         </span>
       </div>
-      <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+      <div className="relative w-full h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner">
         <div
-          className="h-full bg-slate-400 rounded-full transition-all duration-300 ease-out"
+          className="h-full bg-gradient-to-r from-slate-700 to-slate-600 rounded-full transition-all duration-500 ease-out relative"
           style={{ width: `${progress}%` }}
-        />
+        >
+          {/* Shimmer effect overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+        </div>
       </div>
     </div>
   );

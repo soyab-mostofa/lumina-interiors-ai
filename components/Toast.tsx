@@ -26,36 +26,62 @@ const ToastItem: React.FC<ToastProps> = ({ toast, onClose }) => {
     return () => clearTimeout(timer);
   }, [toast.id, toast.duration, onClose]);
 
-  const icons = {
-    success: <CheckCircle size={18} className="text-slate-600" />,
-    error: <XCircle size={18} className="text-slate-600" />,
-    warning: <AlertCircle size={18} className="text-slate-600" />,
-    info: <Info size={18} className="text-slate-600" />,
+  // Subtle semantic colors for better UX (minimal approach)
+  const styles = {
+    success: {
+      icon: 'text-emerald-600',
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-100',
+    },
+    error: {
+      icon: 'text-rose-600',
+      bg: 'bg-rose-50',
+      border: 'border-rose-100',
+    },
+    warning: {
+      icon: 'text-amber-600',
+      bg: 'bg-amber-50',
+      border: 'border-amber-100',
+    },
+    info: {
+      icon: 'text-sky-600',
+      bg: 'bg-sky-50',
+      border: 'border-sky-100',
+    },
   };
+
+  const icons = {
+    success: <CheckCircle size={18} className={styles.success.icon} />,
+    error: <XCircle size={18} className={styles.error.icon} />,
+    warning: <AlertCircle size={18} className={styles.warning.icon} />,
+    info: <Info size={18} className={styles.info.icon} />,
+  };
+
+  const style = styles[toast.type];
 
   return (
     <div
-      className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 min-w-[320px] max-w-md"
+      className={`bg-white border ${style.border} rounded-xl shadow-sm p-4 min-w-[320px] max-w-md hover:shadow-md transition-shadow`}
       role="alert"
     >
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 bg-slate-100 p-1.5 rounded-md">
+        <div className={`flex-shrink-0 ${style.bg} p-2 rounded-lg`}>
           {icons[toast.type]}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-900 text-sm">{toast.title}</p>
+          <p className="font-semibold text-slate-900 text-sm leading-tight">{toast.title}</p>
           {toast.message && (
-            <p className="text-slate-600 text-xs mt-1 leading-relaxed">
+            <p className="text-slate-600 text-xs mt-1.5 leading-relaxed">
               {toast.message}
             </p>
           )}
         </div>
         <button
           onClick={() => onClose(toast.id)}
-          className="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors p-1"
+          className="flex-shrink-0 text-slate-400 hover:text-slate-700 transition-colors p-1 rounded hover:bg-slate-100"
           aria-label="Close notification"
         >
-          <X size={14} />
+          <X size={16} />
         </button>
       </div>
     </div>

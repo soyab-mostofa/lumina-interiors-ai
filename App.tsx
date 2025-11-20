@@ -415,27 +415,27 @@ const App: React.FC = () => {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowKeyboardShortcuts(false)}></div>
-        <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 animate-scale-in">
+        <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 animate-scale-in border border-slate-200">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
-                <Keyboard size={24} />
+              <div className="bg-slate-900 p-3 rounded-xl text-white shadow-sm">
+                <Keyboard size={22} />
               </div>
               <h2 className="text-2xl font-bold text-slate-900">Keyboard Shortcuts</h2>
             </div>
             <button
               onClick={() => setShowKeyboardShortcuts(false)}
-              className="text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-slate-400 hover:text-slate-700 transition-colors p-1 rounded-lg hover:bg-slate-100"
             >
-              <X size={24} />
+              <X size={22} />
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {shortcuts.map((shortcut, index) => (
-              <div key={index} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors">
-                <span className="text-slate-600 font-medium">{shortcut.description}</span>
-                <kbd className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg font-mono text-sm border border-slate-200 shadow-sm">
+              <div key={index} className="flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 transition-colors group">
+                <span className="text-slate-700 font-medium group-hover:text-slate-900">{shortcut.description}</span>
+                <kbd className="px-3 py-2 bg-slate-100 text-slate-700 rounded-lg font-mono text-sm border border-slate-200 shadow-sm group-hover:border-slate-300 transition-colors">
                   {shortcut.keys}
                 </kbd>
               </div>
@@ -443,8 +443,8 @@ const App: React.FC = () => {
           </div>
 
           <div className="mt-6 pt-6 border-t border-slate-200 text-center">
-            <p className="text-sm text-slate-500">
-              Press <kbd className="px-2 py-1 bg-slate-100 rounded text-slate-700 font-mono text-xs">Esc</kbd> to close
+            <p className="text-sm text-slate-600">
+              Press <kbd className="px-2.5 py-1.5 bg-slate-100 rounded-lg text-slate-700 font-mono text-xs border border-slate-200">Esc</kbd> to close
             </p>
           </div>
         </div>
@@ -467,28 +467,28 @@ const App: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <button
                onClick={() => handleContextSelection('Residential')}
-               className="group relative bg-slate-50 hover:bg-indigo-50 border-2 border-slate-200 hover:border-indigo-500 rounded-2xl p-8 transition-all duration-300 text-left"
+               className="group relative bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-900 hover:shadow-lg rounded-2xl p-8 transition-all duration-300 text-left"
              >
-                <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-slate-700 group-hover:text-indigo-600 group-hover:scale-110 transition-all mb-6">
-                   <Home size={32} />
+                <div className="w-16 h-16 bg-slate-100 rounded-2xl shadow-sm flex items-center justify-center text-slate-700 group-hover:text-slate-900 group-hover:scale-105 transition-all mb-6">
+                   <Home size={32} strokeWidth={2} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-2">Residential</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">Living rooms, bedrooms, kitchens, apartments, and personal spaces.</p>
-                <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity text-indigo-600">
+                <p className="text-sm text-slate-600 leading-relaxed">Living rooms, bedrooms, kitchens, apartments, and personal spaces.</p>
+                <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity text-slate-900">
                    <CheckCircleIcon size={24} />
                 </div>
              </button>
 
              <button
                onClick={() => handleContextSelection('Commercial')}
-               className="group relative bg-slate-50 hover:bg-purple-50 border-2 border-slate-200 hover:border-purple-500 rounded-2xl p-8 transition-all duration-300 text-left"
+               className="group relative bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-900 hover:shadow-lg rounded-2xl p-8 transition-all duration-300 text-left"
              >
-                <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-slate-700 group-hover:text-purple-600 group-hover:scale-110 transition-all mb-6">
-                   <Building2 size={32} />
+                <div className="w-16 h-16 bg-slate-100 rounded-2xl shadow-sm flex items-center justify-center text-slate-700 group-hover:text-slate-900 group-hover:scale-105 transition-all mb-6">
+                   <Building2 size={32} strokeWidth={2} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-2">Commercial</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">Offices, retail stores, lobbies, co-working spaces, and business environments.</p>
-                <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity text-purple-600">
+                <p className="text-sm text-slate-600 leading-relaxed">Offices, retail stores, lobbies, co-working spaces, and business environments.</p>
+                <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity text-slate-900">
                    <CheckCircleIcon size={24} />
                 </div>
              </button>
@@ -502,18 +502,18 @@ const App: React.FC = () => {
     const currentStep = getCurrentRedesignStep();
     return (
       <div className="flex justify-center mb-12 animate-fade-in">
-        <div className="flex items-center space-x-2 md:space-x-6 bg-white/50 backdrop-blur-md px-6 py-3 rounded-full shadow-sm border border-white/50">
+        <div className="flex items-center space-x-2 md:space-x-6 bg-white border border-slate-200 px-8 py-4 rounded-full shadow-sm">
           {STEPS.map((step) => (
             <div key={step.number} className="flex items-center">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold border-2 transition-all duration-300
-                ${currentStep >= step.number ? 'border-indigo-600 bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'border-slate-300 text-slate-400 bg-white'}
+              <div className={`flex items-center justify-center w-9 h-9 rounded-full text-xs font-bold border-2 transition-all duration-300
+                ${currentStep >= step.number ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-400 bg-white'}
               `}>
                 {currentStep > step.number ? <Check size={14} strokeWidth={3} /> : step.number}
               </div>
-              <span className={`ml-2 text-sm font-semibold hidden md:block ${currentStep >= step.number ? 'text-indigo-900' : 'text-slate-400'}`}>
+              <span className={`ml-3 text-sm font-bold hidden md:block ${currentStep >= step.number ? 'text-slate-900' : 'text-slate-400'}`}>
                 {step.title}
               </span>
-              {step.number < 4 && <div className={`w-6 md:w-10 h-0.5 ml-2 md:ml-6 transition-colors duration-300 ${currentStep > step.number ? 'bg-indigo-200' : 'bg-slate-200'}`} />}
+              {step.number < 4 && <div className={`w-6 md:w-10 h-0.5 ml-3 md:ml-6 transition-colors duration-300 ${currentStep > step.number ? 'bg-slate-300' : 'bg-slate-200'}`} />}
             </div>
           ))}
         </div>
@@ -527,15 +527,15 @@ const App: React.FC = () => {
         return (
             <div className="animate-slide-up max-w-5xl mx-auto px-6 py-10">
               <div className="text-center mb-16 space-y-6">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-sm font-bold mb-2">
-                  <Stars size={16} />
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-sm font-semibold mb-2">
+                  <Stars size={16} className="text-slate-600" />
                   <span>AI-Powered Interior Designer</span>
                 </div>
-                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 leading-tight">
+                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
                   Redesign your space <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">in seconds.</span>
+                  <span className="text-slate-900">in seconds</span>
                 </h1>
-                <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
+                <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
                   Upload a photo and let our AI analyze your room, suggest tailored improvements, and visualize your dream interior instantly.
                 </p>
               </div>
@@ -546,28 +546,28 @@ const App: React.FC = () => {
                   onDragLeave={handleDragLeave}
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
-                  className={`group relative bg-white border-2 border-dashed rounded-[2rem] p-16 text-center cursor-pointer transition-all duration-300 shadow-2xl shadow-slate-200/50 max-w-3xl mx-auto ${
+                  className={`group relative bg-white border-2 border-dashed rounded-3xl p-16 text-center cursor-pointer transition-all duration-300 shadow-lg max-w-3xl mx-auto ${
                     isDragging
-                      ? 'border-indigo-500 bg-indigo-50/50 scale-105'
-                      : 'border-slate-300 hover:border-indigo-500 hover:bg-slate-50/50'
+                      ? 'border-slate-400 bg-slate-50 scale-[1.02] shadow-xl'
+                      : 'border-slate-300 hover:border-slate-400 hover:bg-slate-50/50 hover:shadow-xl'
                   }`}
               >
-                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] rounded-[2rem] pointer-events-none"></div>
+                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02] rounded-3xl pointer-events-none"></div>
                   <div className="relative z-10 flex flex-col items-center gap-6">
-                    <div className={`w-24 h-24 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center transition-all duration-300 shadow-sm ${
-                      isDragging ? 'scale-125 rotate-6' : 'group-hover:scale-110 group-hover:rotate-3'
+                    <div className={`w-24 h-24 bg-slate-100 text-slate-700 rounded-3xl flex items-center justify-center transition-all duration-300 shadow-sm border-2 border-slate-200 ${
+                      isDragging ? 'scale-110 rotate-3 border-slate-300' : 'group-hover:scale-105 group-hover:border-slate-300'
                     }`}>
-                       <Upload size={40} strokeWidth={1.5} />
+                       <Upload size={40} strokeWidth={2} />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                        <h3 className="text-2xl font-bold text-slate-900">
                          {isDragging ? 'Drop your image here!' : 'Drop your room photo here'}
                        </h3>
-                       <p className="text-slate-500 font-medium">
+                       <p className="text-slate-600 font-medium">
                          {isDragging ? 'Release to upload' : 'or click to browse files'}
                        </p>
                     </div>
-                    <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full">Supports JPG, PNG • Max 10MB</span>
+                    <span className="text-xs text-slate-500 bg-slate-100 px-4 py-2 rounded-full font-semibold border border-slate-200">Supports JPG, PNG • Max 10MB</span>
                   </div>
                   <input
                       type="file"
@@ -586,12 +586,12 @@ const App: React.FC = () => {
         return (
             <div className="animate-fade-in max-w-2xl mx-auto text-center py-20 px-6">
                 <div className="relative inline-block mb-8">
-                    <div className="absolute inset-0 bg-indigo-500 blur-2xl opacity-20 rounded-full animate-pulse-slow"></div>
-                    <img src={originalImage!} alt="Original" className="relative h-64 w-auto rounded-2xl shadow-2xl object-cover ring-4 ring-white" />
+                    <div className="absolute inset-0 bg-slate-300 blur-2xl opacity-10 rounded-full"></div>
+                    <img src={originalImage!} alt="Original" className="relative h-64 w-auto rounded-2xl shadow-2xl object-cover border-4 border-white" />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[2px] rounded-2xl">
-                        <div className="bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-lg flex flex-col items-center gap-3">
-                           <Loader2 className="animate-spin text-indigo-600 h-10 w-10" />
-                           <span className="font-bold text-slate-800 text-sm">Scanning Room...</span>
+                        <div className="bg-white/95 backdrop-blur-xl p-5 rounded-2xl shadow-lg flex flex-col items-center gap-3 border border-slate-100">
+                           <Loader2 className="animate-spin text-slate-700 h-10 w-10" strokeWidth={2.5} />
+                           <span className="font-bold text-slate-900 text-sm">Scanning Room...</span>
                         </div>
                     </div>
                 </div>
@@ -630,33 +630,33 @@ const App: React.FC = () => {
                     {/* Header */}
                     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
                        <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-                          <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600"><Wand2 size={24} /></div>
+                          <div className="bg-slate-900 p-3 rounded-xl text-white shadow-sm"><Wand2 size={22} /></div>
                           Choose Your Transformation
                        </h2>
-                       <p className="text-slate-500 mt-2 pl-12">Context: <span className="font-bold text-indigo-600">{roomContext}</span>. Select a style below.</p>
+                       <p className="text-slate-600 mt-2 pl-[52px]">Context: <span className="font-bold text-slate-900">{roomContext}</span>. Select a style below.</p>
                     </div>
 
                     {/* AI Recommendations */}
                     {analysis && analysis.suggestedPrompts.length > 0 && (
                       <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm font-bold text-indigo-900 uppercase tracking-wider px-2">
-                           <Sparkles size={16} className="text-indigo-500" /> AI Recommended for this Space
+                        <div className="flex items-center gap-2 text-sm font-bold text-slate-900 uppercase tracking-wider px-2">
+                           <Sparkles size={16} className="text-slate-700" /> AI Recommended for this Space
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {analysis.suggestedPrompts.map((prompt, idx) => (
                             <button
                               key={`suggested-${idx}`}
                               onClick={() => setSelectedStyleId(`suggested-${idx}`)}
-                              className={`relative text-left p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl
+                              className={`relative text-left p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg
                                 ${selectedStyleId === `suggested-${idx}`
-                                  ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-100'
-                                  : 'border-white bg-white shadow-sm hover:border-indigo-200'
+                                  ? 'border-slate-900 bg-slate-50 shadow-md'
+                                  : 'border-slate-200 bg-white shadow-sm hover:border-slate-300'
                                 }`}
                             >
                               <h3 className="font-bold text-slate-900 mb-2">{prompt.title}</h3>
-                              <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">{prompt.description}</p>
+                              <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">{prompt.description}</p>
                               {selectedStyleId === `suggested-${idx}` && (
-                                <div className="absolute top-4 right-4 text-indigo-600"><CheckCircleIcon size={20} /></div>
+                                <div className="absolute top-4 right-4 text-slate-900"><CheckCircleIcon size={20} /></div>
                               )}
                             </button>
                           ))}
@@ -699,19 +699,19 @@ const App: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className={`p-1 rounded-2xl border-2 transition-all duration-300 ${selectedStyleId === 'custom' ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-100 bg-slate-50 hover:border-slate-300'}`}>
+                        <div className={`p-1 rounded-2xl border-2 transition-all duration-300 ${selectedStyleId === 'custom' ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'}`}>
                             <div
                                 className="flex items-start gap-4 p-4 cursor-pointer"
                                 onClick={() => setSelectedStyleId('custom')}
                             >
-                                <div className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedStyleId === 'custom' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 bg-white'}`}>
+                                <div className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedStyleId === 'custom' ? 'border-slate-900 bg-slate-900' : 'border-slate-300 bg-white'}`}>
                                     {selectedStyleId === 'custom' && <div className="w-2 h-2 bg-white rounded-full"></div>}
                                 </div>
                                 <div className="w-full">
                                     <span className="font-bold text-slate-900 block mb-2">Custom Prompt</span>
                                     <textarea
                                         placeholder={`E.g. 'A ${roomContext === 'Commercial' ? 'minimalist startup office' : 'bohemian living room'} with...'`}
-                                        className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm min-h-[100px] bg-white transition-shadow shadow-sm"
+                                        className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-900 focus:border-transparent outline-none text-sm min-h-[100px] bg-white transition-all shadow-sm"
                                         value={customPrompt}
                                         onFocus={() => setSelectedStyleId('custom')}
                                         onChange={(e) => {
@@ -732,13 +732,13 @@ const App: React.FC = () => {
                             <button
                                 onClick={handleRedesign}
                                 disabled={redesignState === AppState.GENERATING || !selectedStyleId}
-                                className={`flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-white shadow-xl transition-all transform active:scale-95
+                                className={`flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-white shadow-lg transition-all transform active:scale-95
                                     ${redesignState === AppState.GENERATING || !selectedStyleId
                                         ? 'bg-slate-300 cursor-not-allowed shadow-none'
-                                        : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-indigo-500/30 hover:-translate-y-1'}`}
+                                        : 'bg-slate-900 hover:bg-slate-800 hover:shadow-xl hover:-translate-y-0.5'}`}
                             >
                                 {redesignState === AppState.GENERATING ? (
-                                    <><Loader2 className="animate-spin" /> Generating Design...</>
+                                    <><Loader2 className="animate-spin" size={20} /> Generating Design...</>
                                 ) : (
                                     <><Wand2 size={20} /> Generate Transformation</>
                                 )}
@@ -782,20 +782,20 @@ const App: React.FC = () => {
                 {!isChatOpen && (
                     <button
                         onClick={() => setIsChatOpen(true)}
-                        className="fixed bottom-6 left-6 z-40 bg-slate-900 text-white px-6 py-4 rounded-full shadow-2xl hover:scale-105 transition-all flex items-center gap-3 font-bold border-2 border-white/10 animate-bounce"
+                        className="fixed bottom-6 left-6 z-40 bg-slate-900 text-white px-6 py-4 rounded-full shadow-2xl hover:bg-slate-800 hover:scale-105 transition-all flex items-center gap-3 font-bold border border-slate-700"
                     >
-                        <MessageCircle size={24} className="text-indigo-400" />
+                        <MessageCircle size={22} />
                         <span>Talk to Designer</span>
                     </button>
                 )}
 
                 <div className="flex flex-col md:flex-row justify-between items-end gap-6 bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
                     <div>
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold mb-3 uppercase tracking-wider">
-                            <Check size={12} strokeWidth={3} /> Design Complete
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold mb-3 border border-emerald-100">
+                            <Check size={14} strokeWidth={3} /> Design Complete
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Your Dream Space</h2>
-                        <p className="text-slate-500 mt-2 font-medium">Drag the slider to reveal the transformation.</p>
+                        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">Your Dream Space</h2>
+                        <p className="text-slate-600 mt-2">Drag the slider to reveal the transformation.</p>
                     </div>
                     <div className="flex gap-3">
                         <button
@@ -841,9 +841,9 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="bg-white/80 backdrop-blur p-8 rounded-3xl border border-slate-200 shadow-sm">
-                       <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Sparkles size={18} className="text-indigo-500"/> Style Applied</h3>
-                       <p className="text-slate-600 leading-relaxed">
+                   <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                       <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Sparkles size={18} className="text-slate-700"/> Style Applied</h3>
+                       <p className="text-slate-600 leading-relaxed font-medium">
                           {selectedStyleId === 'custom'
                              ? `Custom: "${customPrompt}"`
                              : selectedStyleId?.startsWith('suggested-')
@@ -851,15 +851,15 @@ const App: React.FC = () => {
                                 : DESIGN_STYLES.find(s => s.id === selectedStyleId)?.name || "Refined Design"}
                        </p>
                    </div>
-                   <div className="bg-gradient-to-br from-indigo-50 to-white p-8 rounded-3xl border border-indigo-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-indigo-200 transition-colors"
+                   <div className="bg-slate-50 p-8 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between group cursor-pointer hover:bg-slate-100 hover:border-slate-300 transition-all"
                         onClick={resetRedesign}
                    >
                        <div>
-                           <h3 className="font-bold text-indigo-900 mb-1">Start New Project</h3>
-                           <p className="text-indigo-600/70 text-sm">Upload a different room photo</p>
+                           <h3 className="font-bold text-slate-900 mb-1">Start New Project</h3>
+                           <p className="text-slate-600 text-sm">Upload a different room photo</p>
                        </div>
-                       <div className="bg-white p-3 rounded-full shadow-md text-indigo-600 group-hover:scale-110 transition-transform">
-                           <ArrowRight size={24} />
+                       <div className="bg-white p-3 rounded-full shadow-sm text-slate-700 group-hover:scale-105 group-hover:shadow-md transition-all border border-slate-200">
+                           <ArrowRight size={22} />
                        </div>
                    </div>
                 </div>
@@ -880,11 +880,11 @@ const App: React.FC = () => {
   const renderGenerateFlow = () => (
     <div className="max-w-4xl mx-auto py-12 px-6 animate-fade-in">
         <div className="text-center mb-12">
-           <div className="bg-purple-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-purple-600 shadow-lg shadow-purple-100">
+           <div className="bg-slate-900 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white shadow-lg">
               <ImagePlus size={32} />
            </div>
            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">Text to Reality</h1>
-           <p className="text-lg text-slate-500 mt-4 max-w-2xl mx-auto">Generate completely new interior concepts from scratch using Imagen 4.0. No existing photo required.</p>
+           <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">Generate completely new interior concepts from scratch using Imagen 4.0. No existing photo required.</p>
         </div>
 
         <div className="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden ring-1 ring-slate-900/5">
@@ -906,10 +906,10 @@ const App: React.FC = () => {
                     <button
                     onClick={handleGenerateNew}
                     disabled={generateState === AppState.GENERATING}
-                    className={`px-10 py-4 rounded-xl font-bold text-white shadow-xl shadow-purple-200 flex items-center gap-3 transition-all transform hover:-translate-y-1
-                        ${generateState === AppState.GENERATING ? 'bg-slate-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 hover:shadow-purple-300'}`}
+                    className={`px-10 py-4 rounded-xl font-bold text-white shadow-lg flex items-center gap-3 transition-all transform active:scale-95
+                        ${generateState === AppState.GENERATING ? 'bg-slate-300 cursor-not-allowed shadow-none' : 'bg-slate-900 hover:bg-slate-800 hover:shadow-xl hover:-translate-y-0.5'}`}
                     >
-                    {generateState === AppState.GENERATING ? <Loader2 className="animate-spin" /> : <Sparkles size={20} />}
+                    {generateState === AppState.GENERATING ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
                     Generate Concept
                     </button>
                 </div>
@@ -930,13 +930,13 @@ const App: React.FC = () => {
                     {generateState === AppState.GENERATING ? (
                         <div className="text-center">
                             <div className="relative w-20 h-20 mx-auto mb-6">
-                                <div className="absolute inset-0 bg-purple-500 opacity-20 rounded-full animate-ping"></div>
-                                <div className="relative bg-white p-4 rounded-full shadow-lg text-purple-600">
+                                <div className="absolute inset-0 bg-slate-300 opacity-20 rounded-full animate-ping"></div>
+                                <div className="relative bg-white p-4 rounded-full shadow-lg text-slate-700 border border-slate-200">
                                     <Loader2 className="w-12 h-12 animate-spin" />
                                 </div>
                             </div>
-                            <h3 className="text-xl font-bold text-slate-800">Creating your masterpiece</h3>
-                            <p className="text-slate-500 font-medium mt-2">This usually takes about 10-15 seconds...</p>
+                            <h3 className="text-xl font-bold text-slate-900">Creating your masterpiece</h3>
+                            <p className="text-slate-600 font-medium mt-2">This usually takes about 10-15 seconds...</p>
                         </div>
                     ) : generatedNewImage ? (
                         <div className="w-full space-y-6 animate-scale-in max-w-3xl mx-auto">
@@ -947,13 +947,13 @@ const App: React.FC = () => {
                                  <a
                                     href={generatedNewImage}
                                     download="lumina-generated.jpg"
-                                    className="flex items-center gap-2 bg-purple-600 text-white px-8 py-3 rounded-xl hover:bg-purple-700 font-bold shadow-lg hover:shadow-purple-200 transition-all"
+                                    className="flex items-center gap-2 bg-slate-900 text-white px-8 py-3 rounded-xl hover:bg-slate-800 font-bold shadow-lg hover:shadow-xl transition-all"
                                  >
                                      <Download size={18} /> Download Image
                                  </a>
                                  <button
                                     onClick={() => setGeneratedNewImage(null)}
-                                    className="flex items-center gap-2 bg-white border border-slate-200 px-6 py-3 rounded-xl text-slate-600 hover:bg-slate-50 font-bold shadow-sm transition-all"
+                                    className="flex items-center gap-2 bg-white border-2 border-slate-200 px-6 py-3 rounded-xl text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold shadow-sm transition-all"
                                  >
                                      Generate Another
                                  </button>
@@ -981,23 +981,23 @@ const App: React.FC = () => {
       <header className="bg-white/70 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-50 supports-[backdrop-filter]:bg-white/60">
         <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
           <div className="flex items-center gap-3 cursor-pointer group" onClick={resetRedesign}>
-            <div className="bg-slate-900 text-white p-2.5 rounded-xl shadow-lg shadow-slate-200 group-hover:scale-105 transition-transform">
+            <div className="bg-slate-900 text-white p-2.5 rounded-xl shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all">
               <Wand2 size={22} />
             </div>
-            <span className="text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">Lumina</span>
+            <span className="text-2xl font-extrabold tracking-tight text-slate-900">Lumina</span>
           </div>
 
           <nav className="flex items-center gap-4">
-             <div className="flex bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/50">
+             <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
                <button
                   onClick={() => setActiveTab(Tab.REDESIGN)}
-                  className={`px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === Tab.REDESIGN ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-900'}`}
+                  className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === Tab.REDESIGN ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
                 >
                   Redesign Room
                 </button>
                 <button
                   onClick={() => setActiveTab(Tab.GENERATE)}
-                  className={`px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === Tab.GENERATE ? 'bg-white text-purple-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-900'}`}
+                  className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === Tab.GENERATE ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
                 >
                   Create New
                 </button>
@@ -1005,7 +1005,7 @@ const App: React.FC = () => {
 
              <button
                onClick={() => setShowKeyboardShortcuts(true)}
-               className="p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-all"
+               className="p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-all shadow-sm"
                title="Keyboard shortcuts (Cmd/Ctrl + K)"
              >
                <Keyboard size={20} />
@@ -1034,10 +1034,10 @@ const App: React.FC = () => {
                  </div>
                  <p className="text-slate-500 text-sm font-semibold">Lumina Interiors AI</p>
              </div>
-             <div className="flex items-center gap-4 text-slate-400 text-sm font-medium bg-white/50 px-4 py-2 rounded-full border border-slate-100">
-                <span className="flex items-center gap-1.5"><Sparkles size={12} className="text-indigo-500"/> Gemini 2.5 Flash</span>
+             <div className="flex items-center gap-4 text-slate-500 text-sm font-medium bg-white/50 px-4 py-2 rounded-full border border-slate-200">
+                <span className="flex items-center gap-1.5"><Sparkles size={12} className="text-slate-600"/> Gemini 2.5 Flash</span>
                 <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                <span className="flex items-center gap-1.5"><ImagePlus size={12} className="text-purple-500"/> Imagen 4.0</span>
+                <span className="flex items-center gap-1.5"><ImagePlus size={12} className="text-slate-600"/> Imagen 4.0</span>
              </div>
          </div>
       </footer>
