@@ -1,116 +1,220 @@
+"use client";
+
 import React from "react";
-import type { RoomAnalysis } from "~/types";
 import {
-  CheckCircle2,
-  AlertTriangle,
-  LayoutDashboard,
-  Hammer,
-  Lightbulb,
-} from "lucide-react";
+  Card,
+  CardContent,
+  Box,
+  Typography,
+  Chip,
+  Stack,
+  Avatar,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  alpha,
+} from "@mui/material";
+import {
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Dashboard as DashboardIcon,
+  Build as BuildIcon,
+  Lightbulb as LightbulbIcon,
+  FiberManualRecord as DotIcon,
+} from "@mui/icons-material";
+import type { RoomAnalysis } from "~/types";
 
 interface AnalysisPanelProps {
   analysis: RoomAnalysis;
 }
 
-export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ analysis }) => {
+export const AnalysisPanel = React.memo<AnalysisPanelProps>(({ analysis }) => {
   return (
-    <div className="animate-fade-in rounded-3xl border border-white/50 bg-white/80 p-6 shadow-lg ring-1 ring-slate-900/5 backdrop-blur-md">
-      <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 text-white shadow-md shadow-indigo-200">
-            <LayoutDashboard size={20} />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold tracking-tight text-slate-900">
+    <Card
+      elevation={2}
+      sx={{
+        borderRadius: 6,
+        backdropFilter: "blur(12px)",
+        background: (theme) =>
+          `${alpha(theme.palette.background.paper, 0.8)}`,
+        border: (theme) => `1px solid ${alpha("#fff", 0.5)}`,
+      }}
+    >
+      <CardContent sx={{ p: 3 }}>
+        {/* Header */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3, pb: 2, borderBottom: 1, borderColor: "divider" }}>
+          <Avatar
+            sx={{
+              background: (theme) =>
+                `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              boxShadow: (theme) => `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`,
+            }}
+          >
+            <DashboardIcon />
+          </Avatar>
+          <Box>
+            <Typography variant="h6" fontWeight={800} sx={{ letterSpacing: "-0.025em" }}>
               Room Analysis
-            </h2>
-            <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+            </Typography>
+            <Typography
+              variant="caption"
+              fontWeight={600}
+              textTransform="uppercase"
+              sx={{ letterSpacing: "0.1em", color: "text.secondary" }}
+            >
               {analysis.roomType ?? "Room"}
-            </p>
-          </div>
-        </div>
-      </div>
+            </Typography>
+          </Box>
+        </Box>
 
-      <div className="space-y-4">
-        {/* Architectural Features */}
-        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 transition-shadow hover:shadow-sm">
-          <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-600">
-            <Hammer size={14} className="text-indigo-500" /> Structure &
-            Architecture
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {(analysis.architecturalFeatures ?? [])
-              .slice(0, 5)
-              .map((item, idx) => (
-                <span
-                  key={idx}
-                  className="rounded-lg border border-indigo-100 bg-white px-2.5 py-1 text-xs font-semibold text-indigo-900 shadow-sm"
-                >
-                  {item}
-                </span>
-              ))}
-            {(!analysis.architecturalFeatures ||
-              analysis.architecturalFeatures.length === 0) && (
-              <span className="text-xs italic text-slate-400">
-                None detected
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Decor Suggestions */}
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 transition-shadow hover:shadow-sm">
-          <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-600">
-            <Lightbulb size={14} className="text-emerald-500" /> Decor
-            Opportunities
-          </h3>
-          <ul className="space-y-2">
-            {(analysis.decorSuggestions ?? [])
-              .slice(0, 3)
-              .map((item, idx) => (
-                <li
-                  key={idx}
-                  className="flex items-start gap-2 text-sm text-slate-700"
-                >
-                  <CheckCircle2
-                    size={14}
-                    className="mt-0.5 flex-shrink-0 text-emerald-500"
-                  />
-                  <span className="leading-tight">{item}</span>
-                </li>
-              ))}
-            {(!analysis.decorSuggestions ||
-              analysis.decorSuggestions.length === 0) && (
-              <li className="text-xs italic text-slate-400">
-                No specific suggestions
-              </li>
-            )}
-          </ul>
-        </div>
-
-        {/* Design Issues */}
-        <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 transition-shadow hover:shadow-sm">
-          <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-600/80">
-            <AlertTriangle size={14} className="text-amber-500" /> Fixes Needed
-          </h3>
-          <ul className="space-y-2">
-            {(analysis.designIssues ?? []).slice(0, 3).map((item, idx) => (
-              <li
-                key={idx}
-                className="flex items-start gap-2 text-sm text-slate-700"
+        {/* Analysis Sections */}
+        <Stack spacing={2}>
+          {/* Architectural Features */}
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 3,
+              border: 1,
+              borderColor: "primary.light",
+              bgcolor: (theme) => alpha(theme.palette.primary.main, 0.05),
+              transition: "box-shadow 0.2s",
+              "&:hover": {
+                boxShadow: 1,
+              },
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+              <BuildIcon fontSize="small" color="primary" />
+              <Typography
+                variant="caption"
+                fontWeight={700}
+                textTransform="uppercase"
+                sx={{ letterSpacing: "0.1em", color: "primary.main" }}
               >
-                <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400"></span>
-                <span className="leading-tight">{item}</span>
-              </li>
-            ))}
-            {(!analysis.designIssues || analysis.designIssues.length === 0) && (
-              <li className="text-xs italic text-slate-400">
-                No major issues found
-              </li>
-            )}
-          </ul>
-        </div>
-      </div>
-    </div>
+                Structure & Architecture
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              {(analysis.architecturalFeatures ?? []).slice(0, 5).map((item, idx) => (
+                <Chip
+                  key={idx}
+                  label={item}
+                  size="small"
+                  sx={{
+                    fontWeight: 600,
+                    bgcolor: "background.paper",
+                    borderColor: "primary.light",
+                    border: 1,
+                  }}
+                />
+              ))}
+              {(!analysis.architecturalFeatures || analysis.architecturalFeatures.length === 0) && (
+                <Typography variant="caption" fontStyle="italic" color="text.secondary">
+                  None detected
+                </Typography>
+              )}
+            </Stack>
+          </Box>
+
+          {/* Decor Suggestions */}
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 3,
+              border: 1,
+              borderColor: "success.light",
+              bgcolor: (theme) => alpha(theme.palette.success.main, 0.05),
+              transition: "box-shadow 0.2s",
+              "&:hover": {
+                boxShadow: 1,
+              },
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+              <LightbulbIcon fontSize="small" color="success" />
+              <Typography
+                variant="caption"
+                fontWeight={700}
+                textTransform="uppercase"
+                sx={{ letterSpacing: "0.1em", color: "success.main" }}
+              >
+                Decor Opportunities
+              </Typography>
+            </Box>
+            <List dense disablePadding>
+              {(analysis.decorSuggestions ?? []).slice(0, 3).map((item, idx) => (
+                <ListItem key={idx} disablePadding sx={{ alignItems: "flex-start", mb: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 28, mt: 0.5 }}>
+                    <CheckCircleIcon fontSize="small" color="success" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item}
+                    primaryTypographyProps={{
+                      variant: "body2",
+                      sx: { lineHeight: 1.4 },
+                    }}
+                  />
+                </ListItem>
+              ))}
+              {(!analysis.decorSuggestions || analysis.decorSuggestions.length === 0) && (
+                <Typography variant="caption" fontStyle="italic" color="text.secondary">
+                  No specific suggestions
+                </Typography>
+              )}
+            </List>
+          </Box>
+
+          {/* Design Issues */}
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 3,
+              border: 1,
+              borderColor: "warning.light",
+              bgcolor: (theme) => alpha(theme.palette.warning.main, 0.05),
+              transition: "box-shadow 0.2s",
+              "&:hover": {
+                boxShadow: 1,
+              },
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+              <WarningIcon fontSize="small" color="warning" />
+              <Typography
+                variant="caption"
+                fontWeight={700}
+                textTransform="uppercase"
+                sx={{ letterSpacing: "0.1em", color: "warning.main" }}
+              >
+                Fixes Needed
+              </Typography>
+            </Box>
+            <List dense disablePadding>
+              {(analysis.designIssues ?? []).slice(0, 3).map((item, idx) => (
+                <ListItem key={idx} disablePadding sx={{ alignItems: "flex-start", mb: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 20, mt: 1 }}>
+                    <DotIcon sx={{ fontSize: 8, color: "warning.main" }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item}
+                    primaryTypographyProps={{
+                      variant: "body2",
+                      sx: { lineHeight: 1.4 },
+                    }}
+                  />
+                </ListItem>
+              ))}
+              {(!analysis.designIssues || analysis.designIssues.length === 0) && (
+                <Typography variant="caption" fontStyle="italic" color="text.secondary">
+                  No major issues found
+                </Typography>
+              )}
+            </List>
+          </Box>
+        </Stack>
+      </CardContent>
+    </Card>
   );
-};
+});

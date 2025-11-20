@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { TRPCProvider } from "~/lib/trpc/TRPCProvider";
+import ThemeRegistry from "~/components/ThemeRegistry";
 import "~/styles/globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -13,6 +15,13 @@ export const metadata: Metadata = {
   description:
     "Transform your space with AI-powered interior design. Upload a photo, get expert analysis, and see stunning redesigns in seconds.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
+  keywords: ["interior design", "AI", "home design", "room redesign", "Gemini AI"],
+  authors: [{ name: "Lumina Interiors AI" }],
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+  },
 };
 
 export default function RootLayout({
@@ -22,8 +31,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${plusJakartaSans.variable}`}>
-      <body className="font-sans">
-        <TRPCProvider>{children}</TRPCProvider>
+      <body className={plusJakartaSans.className}>
+        <ThemeRegistry>
+          <TRPCProvider>{children}</TRPCProvider>
+        </ThemeRegistry>
       </body>
     </html>
   );
