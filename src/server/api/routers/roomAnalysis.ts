@@ -15,7 +15,12 @@ export const roomAnalysisRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input }) => {
-      return await analyzeRoomImage(input.base64Image, input.contextHint);
+      try {
+        return await analyzeRoomImage(input.base64Image, input.contextHint);
+      } catch (error) {
+        console.error("Error in analyze procedure:", error);
+        throw new Error(error instanceof Error ? error.message : "Unknown error during analysis");
+      }
     }),
 
   redesign: publicProcedure

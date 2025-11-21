@@ -1,7 +1,24 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, X, Sparkles, Loader2 } from "lucide-react";
+import {
+  Box,
+  Paper,
+  Typography,
+  IconButton,
+  TextField,
+  Avatar,
+  Stack,
+  CircularProgress,
+  Chip,
+  InputAdornment,
+  alpha,
+} from "@mui/material";
+import {
+  Send as SendIcon,
+  Close as CloseIcon,
+  AutoAwesome as SparklesIcon,
+} from "@mui/icons-material";
 import type { ChatMessage, RoomAnalysis } from "~/types";
 import { api } from "~/lib/trpc/client";
 import { compressBase64 } from "~/lib/utils";
@@ -9,8 +26,8 @@ import { compressBase64 } from "~/lib/utils";
 interface DesignerChatProps {
   isOpen: boolean;
   onClose: () => void;
-  currentImageBase64: string; // We send the current "After" image context
-  originalImageBase64: string; // We send the "Before" image context for memory
+  currentImageBase64: string;
+  originalImageBase64: string;
   analysis: RoomAnalysis | null;
   roomContext: "Residential" | "Commercial";
   onTriggerRedesign: (prompt: string) => void;
@@ -109,117 +126,290 @@ export const DesignerChat: React.FC<DesignerChatProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="animate-scale-in fixed bottom-6 left-6 z-50 flex w-full max-w-[360px] flex-col shadow-2xl md:max-w-[400px]">
+    <Paper
+      elevation={6}
+      sx={{
+        position: "fixed",
+        bottom: 24,
+        left: 24,
+        zIndex: 1300,
+        width: "100%",
+        maxWidth: { xs: 360, md: 400 },
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 4,
+        overflow: "hidden",
+        animation: "scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+        "@keyframes scaleIn": {
+          "0%": { opacity: 0, transform: "scale(0.95)" },
+          "100%": { opacity: 1, transform: "scale(1)" },
+        },
+      }}
+    >
       {/* Chat Header */}
-      <div className="flex items-center justify-between rounded-t-2xl border-b border-slate-800 bg-slate-900 p-4 text-white">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500 text-white">
-              <Sparkles size={20} />
-            </div>
-            <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-slate-900 bg-emerald-500"></div>
-          </div>
-          <div>
-            <h3 className="text-sm font-bold">Lumina Designer</h3>
-            <p className="text-xs text-slate-400">
+      <Box
+        sx={{
+          p: 2,
+          bgcolor: "grey.900",
+          color: "common.white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderBottom: 1,
+          borderColor: "grey.800",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box sx={{ position: "relative" }}>
+            <Avatar
+              sx={{
+                bgcolor: "primary.main",
+                width: 40,
+                height: 40,
+                color: "common.white",
+              }}
+            >
+              <SparklesIcon fontSize="small" />
+            </Avatar>
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: 0,
+                right: 0,
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                bgcolor: "success.main",
+                border: 2,
+                borderColor: "grey.900",
+              }}
+            />
+          </Box>
+          <Box>
+            <Typography variant="subtitle2" fontWeight="bold">
+              Lumina Designer
+            </Typography>
+            <Typography variant="caption" sx={{ color: "grey.400" }}>
               Online • {roomContext}{" "}
               {analysis?.roomType ? `(${analysis.roomType})` : ""}
-            </p>
-          </div>
-        </div>
-        <button
+            </Typography>
+          </Box>
+        </Box>
+        <IconButton
           onClick={onClose}
-          className="rounded-full p-1 transition-colors hover:bg-slate-800"
+          size="small"
+          sx={{ color: "grey.400", "&:hover": { color: "common.white", bgcolor: "grey.800" } }}
         >
-          <X size={18} />
-        </button>
-      </div>
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </Box>
 
       {/* Messages Area */}
-      <div className="h-[400px] flex-grow space-y-4 overflow-y-auto border-x border-white/20 bg-white/95 p-4 backdrop-blur-xl">
+      <Box
+        sx={{
+          height: 400,
+          flexGrow: 1,
+          overflowY: "auto",
+          p: 2,
+          bgcolor: "background.paper", // Fallback
+          backgroundImage: "linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9))",
+          backdropFilter: "blur(20px)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
         {messages.length === 0 && (
-          <div className="mt-8 px-6 text-center text-sm text-slate-400">
-            <p>👋 Hi! I'm Lumina.</p>
-            <p className="mt-2">
+          <Box sx={{ mt: 4, px: 2, textAlign: "center", color: "text.secondary" }}>
+            <Typography variant="body2" paragraph>
+              👋 Hi! I'm Lumina.
+            </Typography>
+            <Typography variant="body2" paragraph>
               I can help you refine this {roomContext.toLowerCase()} space.
-            </p>
-            <p className="mt-2 text-xs text-slate-400">
+            </Typography>
+            <Typography variant="caption" display="block" sx={{ mt: 2, mb: 1 }}>
               Try specific commands:
-            </p>
-            <ul className="mt-3 space-y-2 cursor-pointer text-xs font-semibold text-indigo-600">
-              <li
-                className="rounded-lg bg-indigo-50 px-3 py-2 transition-colors hover:bg-indigo-100"
-                onClick={() =>
-                  setInput("Change only the wall color to sage green.")
-                }
-              >
-                "Change only the wall color to sage green."
-              </li>
-              <li
-                className="rounded-lg bg-indigo-50 px-3 py-2 transition-colors hover:bg-indigo-100"
-                onClick={() => setInput("Restore the original floor.")}
-              >
-                "Restore the original floor."
-              </li>
-            </ul>
-          </div>
+            </Typography>
+            <Stack spacing={1} alignItems="center">
+              {[
+                "Change only the wall color to sage green.",
+                "Restore the original floor.",
+              ].map((cmd, idx) => (
+                <Chip
+                  key={idx}
+                  label={`"${cmd}"`}
+                  onClick={() => setInput(cmd)}
+                  sx={{
+                    cursor: "pointer",
+                    bgcolor: "primary.50",
+                    color: "primary.main",
+                    fontWeight: 600,
+                    fontSize: "0.75rem",
+                    "&:hover": { bgcolor: "primary.100" },
+                  }}
+                />
+              ))}
+            </Stack>
+          </Box>
         )}
 
         {messages.map((msg) => (
-          <div
+          <Box
             key={msg.id}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+            sx={{
+              display: "flex",
+              justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+            }}
           >
             {msg.isSystemMessage ? (
-              <div className="mx-auto flex animate-pulse items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">
-                <Loader2 size={10} className="animate-spin" /> {msg.text}
-              </div>
+              <Chip
+                icon={<CircularProgress size={10} color="inherit" />}
+                label={msg.text}
+                size="small"
+                sx={{
+                  mx: "auto",
+                  bgcolor: "primary.50",
+                  color: "primary.main",
+                  fontWeight: "bold",
+                  fontSize: "0.75rem",
+                  "& .MuiChip-icon": { color: "inherit" },
+                }}
+              />
             ) : (
-              <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
-                  msg.role === "user"
-                    ? "rounded-tr-none bg-slate-900 text-white"
-                    : "rounded-tl-none border border-slate-100 bg-white text-slate-700"
-                }`}
+              <Paper
+                elevation={0}
+                sx={{
+                  maxWidth: "85%",
+                  p: 1.5,
+                  px: 2,
+                  borderRadius: 3,
+                  ...(msg.role === "user"
+                    ? {
+                        bgcolor: "grey.900",
+                        color: "common.white",
+                        borderTopRightRadius: 0,
+                      }
+                    : {
+                        bgcolor: "background.paper",
+                        border: 1,
+                        borderColor: "divider",
+                        color: "text.primary",
+                        borderTopLeftRadius: 0,
+                      }),
+                }}
               >
-                {msg.text}
-              </div>
+                <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                  {msg.text}
+                </Typography>
+              </Paper>
             )}
-          </div>
+          </Box>
         ))}
+
         {isTyping && (
-          <div className="flex justify-start">
-            <div className="flex items-center gap-1 rounded-2xl rounded-tl-none bg-slate-100 px-4 py-3">
-              <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400"></div>
-              <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:0.1s]"></div>
-              <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:0.2s]"></div>
-            </div>
-          </div>
+          <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 1.5,
+                px: 2,
+                borderRadius: 3,
+                borderTopLeftRadius: 0,
+                bgcolor: "grey.100",
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 6,
+                  height: 6,
+                  bgcolor: "grey.500",
+                  borderRadius: "50%",
+                  animation: "bounce 1.4s infinite ease-in-out both",
+                  "@keyframes bounce": {
+                    "0%, 80%, 100%": { transform: "scale(0)" },
+                    "40%": { transform: "scale(1)" },
+                  },
+                }}
+              />
+              <Box
+                sx={{
+                  width: 6,
+                  height: 6,
+                  bgcolor: "grey.500",
+                  borderRadius: "50%",
+                  animation: "bounce 1.4s infinite ease-in-out both",
+                  animationDelay: "0.16s",
+                }}
+              />
+              <Box
+                sx={{
+                  width: 6,
+                  height: 6,
+                  bgcolor: "grey.500",
+                  borderRadius: "50%",
+                  animation: "bounce 1.4s infinite ease-in-out both",
+                  animationDelay: "0.32s",
+                }}
+              />
+            </Paper>
+          </Box>
         )}
         <div ref={messagesEndRef} />
-      </div>
+      </Box>
 
       {/* Input Area */}
-      <div className="rounded-b-2xl border-t border-slate-100 bg-white p-3">
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-shadow focus-within:ring-2 focus-within:ring-indigo-500">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Ask for changes or to keep features..."
-            className="flex-grow bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
-            disabled={isTyping}
-          />
-          <button
-            onClick={handleSend}
-            disabled={!input.trim() || isTyping}
-            className="rounded-lg bg-indigo-600 p-2 text-white transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Send size={16} />
-          </button>
-        </div>
-      </div>
-    </div>
+      <Box
+        sx={{
+          p: 2,
+          bgcolor: "background.paper",
+          borderTop: 1,
+          borderColor: "divider",
+        }}
+      >
+        <TextField
+          fullWidth
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          placeholder="Ask for changes or to keep features..."
+          variant="outlined"
+          size="small"
+          disabled={isTyping}
+          InputProps={{
+            sx: {
+              borderRadius: 3,
+              bgcolor: "grey.50",
+              "& fieldset": { borderColor: "grey.200" },
+              "&:hover fieldset": { borderColor: "primary.main" },
+              "&.Mui-focused fieldset": { borderColor: "primary.main" },
+            },
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={handleSend}
+                  disabled={!input.trim() || isTyping}
+                  color="primary"
+                  sx={{
+                    bgcolor: input.trim() ? "primary.main" : "action.disabledBackground",
+                    color: input.trim() ? "common.white" : "action.disabled",
+                    "&:hover": {
+                      bgcolor: input.trim() ? "primary.dark" : "action.disabledBackground",
+                    },
+                    width: 32,
+                    height: 32,
+                  }}
+                >
+                  <SendIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+    </Paper>
   );
 };
+

@@ -1,65 +1,28 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Global Styles */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-  }
-
-  body {
-    @apply bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-100;
-    min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
-  }
-
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: radial-gradient(
-        rgba(99, 102, 241, 0.05) 1px,
-        transparent 1px
-      ),
-      radial-gradient(rgba(168, 85, 247, 0.05) 1px, transparent 1px);
-    background-size: 50px 50px;
-    background-position:
-      0 0,
-      25px 25px;
-    z-index: -1;
-    pointer-events: none;
-  }
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: #f8fafc; /* Fallback */
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  /* Custom scrollbar styles */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
+::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.5);
+  border-radius: 10px;
+}
 
-  ::-webkit-scrollbar-track {
-    @apply bg-slate-100/50;
-    border-radius: 10px;
-  }
+::-webkit-scrollbar-thumb {
+  background: rgba(165, 180, 252, 0.5);
+  border-radius: 10px;
+}
 
-  ::-webkit-scrollbar-thumb {
-    @apply bg-indigo-300/50;
-    border-radius: 10px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-indigo-400/70;
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(129, 140, 248, 0.7);
 }

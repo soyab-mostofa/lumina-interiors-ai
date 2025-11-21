@@ -6,6 +6,9 @@ import type { RoomAnalysis, ChatMessage } from "~/types";
 // Initialize API Client with server-side env
 const getAiClient = () => new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
+// Helper to strip data URI prefix
+const stripBase64Prefix = (base64: string) => base64.replace(/^data:image\/\w+;base64,/, "");
+
 /**
  * Analyzes the room image using Gemini 2.5 Flash.
  * Accepts a contextHint to bias the analysis.
@@ -48,7 +51,7 @@ export const analyzeRoomImage = async (
       model: "gemini-2.5-flash",
       contents: {
         parts: [
-          { inlineData: { mimeType: "image/jpeg", data: base64Image } },
+          { inlineData: { mimeType: "image/jpeg", data: stripBase64Prefix(base64Image) } },
           { text: prompt },
         ],
       },
@@ -112,7 +115,11 @@ export const analyzeRoomImage = async (
         : [],
     };
   } catch (error) {
-    console.error("Analysis failed:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Analysis failed:", errorMessage);
+    if (error instanceof Error) {
+      console.error("Error stack:", error.stack);
+    }
     throw error;
   }
 };
@@ -182,7 +189,7 @@ export const getDesignerChatResponse = async (
       contents: {
         parts: [
           {
-            inlineData: { mimeType: "image/jpeg", data: currentImageBase64 },
+            inlineData: { mimeType: "image/jpeg", data: stripBase64Prefix(currentImageBase64) },
           },
           { text: prompt },
         ],
@@ -244,7 +251,7 @@ export const redesignRoomImage = async (
           {
             inlineData: {
               mimeType: "image/jpeg",
-              data: base64Original,
+              data: stripBase64Prefix(base64Original),
             },
           },
           { text: fullPrompt },

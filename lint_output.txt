@@ -1,0 +1,43 @@
+
+> lumina-interiors-ai@0.1.0 lint C:\Users\jamroll\Downloads\lumina-interiors-ai
+> next lint
+
+`next lint` is deprecated and will be removed in Next.js 16.
+For new projects, use create-next-app to choose your preferred linter.
+For existing projects, migrate to the ESLint CLI:
+npx @next/codemod@canary next-lint-to-eslint-cli .
+
+
+./src/app/page.tsx
+27:24  Warning: 'compressBase64' is defined but never used.  @typescript-eslint/no-unused-vars
+157:23  Error: This assertion is unnecessary since it does not change the type of the expression.  @typescript-eslint/no-unnecessary-type-assertion
+414:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+448:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+804:29  Error: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.  @typescript-eslint/prefer-nullish-coalescing
+824:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/AnalysisPanel.tsx
+12:3  Warning: 'Divider' is defined but never used.  @typescript-eslint/no-unused-vars
+33:30  Error: Component definition is missing display name  react/display-name
+42:18  Warning: 'theme' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/components/BeforeAfterSlider.tsx
+73:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+87:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/DesignerChat.tsx
+142:24  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+156:17  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+156:59  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+162:17  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+162:45  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/lib/utils.ts
+52:32  Error: Expected the Promise rejection reason to be an Error.  @typescript-eslint/prefer-promise-reject-errors
+54:33  Error: Expected the Promise rejection reason to be an Error.  @typescript-eslint/prefer-promise-reject-errors
+
+./src/server/api/routers/roomAnalysis.ts
+126:11  Error: Unsafe assignment of an `any` value.  @typescript-eslint/no-unsafe-assignment
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+ ELIFECYCLE  Command failed with exit code 1.

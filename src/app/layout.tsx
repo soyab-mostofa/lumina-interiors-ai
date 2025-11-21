@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { TRPCProvider } from "~/lib/trpc/TRPCProvider";
 import ThemeRegistry from "~/components/ThemeRegistry";
@@ -10,6 +10,12 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "Lumina Interiors AI - AI-Powered Interior Design",
   description:
@@ -17,11 +23,6 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   keywords: ["interior design", "AI", "home design", "room redesign", "Gemini AI"],
   authors: [{ name: "Lumina Interiors AI" }],
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
 };
 
 export default function RootLayout({
